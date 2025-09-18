@@ -20,10 +20,10 @@ public interface CertifiedNotMoveRepository extends JpaRepository<CertifiedNotMo
     long countByClientIp(String clientIp);
     long countByAlertType(String alertType);
 
-    //시간으로만 찾기
+    //시간으로만 찾기 - 명시적 시간 비교로 시간대 문제 해결
     @Query("""
         SELECT cnm FROM CertifiedNotMove cnm
-        WHERE (cnm.alertTimeKST BETWEEN :start AND :end)
+        WHERE cnm.alertTimeKST >= :start AND cnm.alertTimeKST <= :end
         ORDER BY cnm.failureCount DESC, cnm.alertType ASC, cnm.alertTimeKST ASC
     """)
     List<CertifiedNotMove> findByTimesOnly(
@@ -33,7 +33,7 @@ public interface CertifiedNotMoveRepository extends JpaRepository<CertifiedNotMo
 
     @Query("""
         SELECT COUNT(cnm) FROM CertifiedNotMove cnm
-        WHERE (cnm.alertTimeKST BETWEEN :start AND :end)
+        WHERE cnm.alertTimeKST >= :start AND cnm.alertTimeKST <= :end
     """)
     long countByTimesOnly(
             @Param(value = "start") OffsetDateTime start,
@@ -43,8 +43,8 @@ public interface CertifiedNotMoveRepository extends JpaRepository<CertifiedNotMo
     //시간 + client_ip 기준으로 찾기
     @Query("""
         SELECT cnm FROM CertifiedNotMove cnm
-        WHERE (cnm.alertTimeKST BETWEEN :start AND :end)
-          AND (cnm.clientIp = :clientIp)
+        WHERE cnm.alertTimeKST >= :start AND cnm.alertTimeKST <= :end
+          AND cnm.clientIp = :clientIp
         ORDER BY cnm.failureCount DESC, cnm.alertType ASC, cnm.alertTimeKST ASC
     """)
     List<CertifiedNotMove> findByC(
@@ -55,8 +55,8 @@ public interface CertifiedNotMoveRepository extends JpaRepository<CertifiedNotMo
 
     @Query("""
         SELECT COUNT(cnm) FROM CertifiedNotMove cnm
-        WHERE (cnm.alertTimeKST BETWEEN :start AND :end)
-          AND (cnm.clientIp = :clientIp)
+        WHERE cnm.alertTimeKST >= :start AND cnm.alertTimeKST <= :end
+          AND cnm.clientIp = :clientIp
     """)
     long countByC(
             @Param(value = "start") OffsetDateTime start,
@@ -67,8 +67,8 @@ public interface CertifiedNotMoveRepository extends JpaRepository<CertifiedNotMo
     //시간 + alert_type
     @Query("""
         SELECT cnm FROM CertifiedNotMove cnm
-        WHERE (cnm.alertTimeKST BETWEEN :start AND :end)
-          AND (cnm.alertType = :alertType)
+        WHERE cnm.alertTimeKST >= :start AND cnm.alertTimeKST <= :end
+          AND cnm.alertType = :alertType
         ORDER BY cnm.failureCount DESC, cnm.alertType ASC, cnm.alertTimeKST ASC
     """)
     List<CertifiedNotMove> findByA(
@@ -79,8 +79,8 @@ public interface CertifiedNotMoveRepository extends JpaRepository<CertifiedNotMo
 
     @Query("""
         SELECT COUNT(cnm) FROM CertifiedNotMove cnm
-        WHERE (cnm.alertTimeKST BETWEEN :start AND :end)
-          AND (cnm.alertType = :alertType)
+        WHERE cnm.alertTimeKST >= :start AND cnm.alertTimeKST <= :end
+          AND cnm.alertType = :alertType
     """)
     long countByA(
             @Param(value = "start") OffsetDateTime start,
@@ -94,7 +94,7 @@ public interface CertifiedNotMoveRepository extends JpaRepository<CertifiedNotMo
     @Query("""
         SELECT cnm.clientIp AS clientIp, COUNT(cnm) AS count 
         FROM CertifiedNotMove AS cnm
-        WHERE (cnm.alertTimeKST BETWEEN :start AND :end)
+        WHERE cnm.alertTimeKST >= :start AND cnm.alertTimeKST <= :end
         GROUP BY cnm.clientIp
         ORDER BY COUNT(cnm) DESC
     """)
@@ -115,7 +115,7 @@ public interface CertifiedNotMoveRepository extends JpaRepository<CertifiedNotMo
     @Query("""
         SELECT cnm.alertType AS alertType, COUNT(cnm) AS count
         FROM CertifiedNotMove cnm
-        WHERE (cnm.alertTimeKST BETWEEN :start AND :end)
+        WHERE cnm.alertTimeKST >= :start AND cnm.alertTimeKST <= :end
         GROUP BY cnm.alertType
         ORDER BY COUNT(cnm) DESC
     """)

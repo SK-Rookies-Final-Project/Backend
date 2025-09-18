@@ -26,30 +26,68 @@ public interface ResourceLevelFalseRepository extends JpaRepository<ResourceLeve
 
 
     /** 시간 기준으로만 찾기*/
-    //시간 기준으로만 찾기
+    //시간 기준으로만 찾기 - 명시적 쿼리로 시간대 문제 해결
+    @Query("""
+        SELECT r FROM ResourceLevelFalse r
+        WHERE r.eventTimeKST >= :start AND r.eventTimeKST <= :end
+        ORDER BY r.eventTimeKST ASC
+    """)
     List<ResourceLevelFalse> findByEventTimeKSTBetweenOrderByEventTimeKSTAsc(
-            OffsetDateTime start, OffsetDateTime end
+            @Param("start") OffsetDateTime start, 
+            @Param("end") OffsetDateTime end
     );
 
     /** 시간과 하나의 컬럼으로 찾기*/
     //시간 + principal 기준으로 레코드 반환
+    @Query("""
+        SELECT r FROM ResourceLevelFalse r
+        WHERE r.eventTimeKST >= :start AND r.eventTimeKST <= :end
+          AND r.principal = :principal
+        ORDER BY r.eventTimeKST ASC
+    """)
     List<ResourceLevelFalse> findByEventTimeKSTBetweenAndPrincipalOrderByEventTimeKSTAsc(
-            OffsetDateTime start, OffsetDateTime end,  String principal
+            @Param("start") OffsetDateTime start, 
+            @Param("end") OffsetDateTime end,  
+            @Param("principal") String principal
     );
 
     //시간 + resourceName 기준으로 레코드 반환
+    @Query("""
+        SELECT r FROM ResourceLevelFalse r
+        WHERE r.eventTimeKST >= :start AND r.eventTimeKST <= :end
+          AND r.resourceName = :resourceName
+        ORDER BY r.eventTimeKST ASC
+    """)
     List<ResourceLevelFalse> findByEventTimeKSTBetweenAndResourceNameOrderByEventTimeKSTAsc(
-            OffsetDateTime start, OffsetDateTime end, String resourceName
+            @Param("start") OffsetDateTime start, 
+            @Param("end") OffsetDateTime end, 
+            @Param("resourceName") String resourceName
     );
 
     //시간 + operation 기준으로 레코드 반환
+    @Query("""
+        SELECT r FROM ResourceLevelFalse r
+        WHERE r.eventTimeKST >= :start AND r.eventTimeKST <= :end
+          AND r.operation = :operation
+        ORDER BY r.eventTimeKST ASC
+    """)
     List<ResourceLevelFalse> findByEventTimeKSTBetweenAndOperationOrderByEventTimeKSTAsc(
-            OffsetDateTime start, OffsetDateTime end, String operation
+            @Param("start") OffsetDateTime start, 
+            @Param("end") OffsetDateTime end, 
+            @Param("operation") String operation
     );
 
     //시간 + client_ip 기준으로 레코드 반환
+    @Query("""
+        SELECT r FROM ResourceLevelFalse r
+        WHERE r.eventTimeKST >= :start AND r.eventTimeKST <= :end
+          AND r.clientIp = :clientIp
+        ORDER BY r.eventTimeKST ASC
+    """)
     List<ResourceLevelFalse> findByEventTimeKSTBetweenAndClientIpOrderByEventTimeKSTAsc(
-            OffsetDateTime start, OffsetDateTime end, String clientIp
+            @Param("start") OffsetDateTime start, 
+            @Param("end") OffsetDateTime end, 
+            @Param("clientIp") String clientIp
     );
 
     /** 시간 + 2가지 컬럼으로 찾기 */

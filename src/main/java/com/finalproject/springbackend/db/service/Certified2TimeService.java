@@ -4,13 +4,16 @@ import com.finalproject.springbackend.db.entity.Certified2Time;
 import com.finalproject.springbackend.db.repository.Certified2TimeRepository;
 import com.finalproject.springbackend.db.repository.projection.AlertTypeCount;
 import com.finalproject.springbackend.db.repository.projection.IpCount;
+import com.finalproject.springbackend.util.TimeZoneUtil;
 import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.OffsetDateTime;
 import java.util.List;
 
+@Slf4j
 @Service
 @AllArgsConstructor
 @Transactional(readOnly = true)
@@ -18,14 +21,22 @@ public class Certified2TimeService {
 
     private final Certified2TimeRepository repo;
 
-    /**보정*/
+    /**보정 (한국 시간대 처리)*/
     //시간 보정
     private OffsetDateTime[] CorrectionOfTimes(OffsetDateTime start, OffsetDateTime end){
         //start가 null일 때 예외 처리
         if(start == null) { throw new IllegalArgumentException("시작 시간을 넣어주세요"); }
 
-        //end가 null일 때 현재 시간으로 보정
-        if(end == null){ end = OffsetDateTime.now(); }
+        //end가 null일 때 현재 한국 시간으로 보정
+        if(end == null){ end = TimeZoneUtil.nowKST(); }
+
+        // 사용자 입력을 한국 시간대로 해석
+        start = TimeZoneUtil.interpretAsKST(start);
+        end = TimeZoneUtil.interpretAsKST(end);
+
+        log.info("🕐 Certified2Time 시간 보정 완료 - 시작: {}, 종료: {}", 
+            TimeZoneUtil.formatForDebug("시작", start),
+            TimeZoneUtil.formatForDebug("종료", end));
 
         //start 시간이 end 시간 이후일 때 변경
         if(start.isAfter(end)){ OffsetDateTime tmp; tmp = start; start = end; end = tmp; }

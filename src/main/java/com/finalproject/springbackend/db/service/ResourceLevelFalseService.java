@@ -2,6 +2,7 @@ package com.finalproject.springbackend.db.service;
 
 import com.finalproject.springbackend.db.entity.ResourceLevelFalse;
 import com.finalproject.springbackend.db.repository.ResourceLevelFalseRepository;
+import com.finalproject.springbackend.util.TimeZoneUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -92,10 +93,19 @@ public class ResourceLevelFalseService {
     /**
      * 파라미터 보정 메서드
      */
-    //start, end 전체 보정
+    //start, end 전체 보정 (한국 시간대 처리)
     private OffsetDateTime[] timesCorrection(OffsetDateTime start, OffsetDateTime end){
         start = ifStartIsNull(start);
         end = ifEndIsNull(end);
+        
+        // 사용자 입력을 한국 시간대로 해석
+        start = TimeZoneUtil.interpretAsKST(start);
+        end = TimeZoneUtil.interpretAsKST(end);
+        
+        log.info("🕐 시간 보정 완료 - 시작: {}, 종료: {}", 
+            TimeZoneUtil.formatForDebug("시작", start),
+            TimeZoneUtil.formatForDebug("종료", end));
+        
         return ifStartTimeAfterEndTime(start, end);
     }
     //start보다 end 시간이 더 이후일 때
@@ -108,10 +118,10 @@ public class ResourceLevelFalseService {
         return new OffsetDateTime[]{start, end};
     }
 
-    //null 값일 경우 보정
+    //null 값일 경우 보정 (한국 시간 기준)
     private OffsetDateTime ifEndIsNull(OffsetDateTime time){
         if(time==null){
-            time = OffsetDateTime.now();
+            time = TimeZoneUtil.nowKST();
             return time;
         }
         else {
@@ -190,8 +200,18 @@ public class ResourceLevelFalseService {
         start = times[0];
         end = times[1];
 
+        log.info("🕐 시간 범위 조회 - 시작: {}, 종료: {}", start, end);
+        log.info("🕐 시간 범위 조회 - 시작 UTC: {}, 종료 UTC: {}", start.toInstant(), end.toInstant());
 
-        return repo.findByEventTimeKSTBetweenOrderByEventTimeKSTAsc(start, end);
+        List<ResourceLevelFalse> result = repo.findByEventTimeKSTBetweenOrderByEventTimeKSTAsc(start, end);
+        
+        if (!result.isEmpty()) {
+            log.info("📊 조회 결과 - 총 {}개 레코드", result.size());
+            log.info("📊 첫 번째 레코드 시간: {}", result.get(0).getEventTimeKST());
+            log.info("📊 마지막 레코드 시간: {}", result.get(result.size() - 1).getEventTimeKST());
+        }
+
+        return result;
     }
     //시간 기준 레코드 갯수
     public int getTimesOnlyCount(

@@ -2,6 +2,7 @@ package com.finalproject.springbackend.db.service;
 
 import com.finalproject.springbackend.db.entity.SystemLevelFalse;
 import com.finalproject.springbackend.db.repository.SystemLevelFalseRepository;
+import com.finalproject.springbackend.util.TimeZoneUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -18,13 +19,22 @@ public class SystemLevelFalseService {
 
     private final SystemLevelFalseRepository repo;
 
-    /** start, end 시간 보정 메서드 */
+    /** start, end 시간 보정 메서드 (한국 시간대 처리) */
     //start, end 시간 전체 보정
     private OffsetDateTime[] timeCorrection(
             OffsetDateTime start, OffsetDateTime end
     ){
         start = ifStartIsNull(start);
         end = ifEndIsNull(end);
+        
+        // 사용자 입력을 한국 시간대로 해석
+        start = TimeZoneUtil.interpretAsKST(start);
+        end = TimeZoneUtil.interpretAsKST(end);
+        
+        log.info("🕐 SystemLevel 시간 보정 완료 - 시작: {}, 종료: {}", 
+            TimeZoneUtil.formatForDebug("시작", start),
+            TimeZoneUtil.formatForDebug("종료", end));
+        
         return ifStartTimeAfterEndTime(start, end);
     }
     //start가 end보다 더 이른 시간일 시 start=end, end=start
@@ -40,10 +50,10 @@ public class SystemLevelFalseService {
                 start, end
         };
     }
-    //end가 null일 때 현재시간으로 보정
+    //end가 null일 때 현재 한국시간으로 보정
     private OffsetDateTime ifEndIsNull(OffsetDateTime end) {
         if(end == null) {
-            end = OffsetDateTime.now();
+            end = TimeZoneUtil.nowKST();
             return end;
         } else {
             return end;

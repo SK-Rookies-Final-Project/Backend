@@ -6,10 +6,23 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration;
 import org.springframework.scheduling.annotation.EnableScheduling;
 
+import jakarta.annotation.PostConstruct;
+import java.util.TimeZone;
+
 //@SpringBootApplication(exclude = {DataSourceAutoConfiguration.class})
 @EnableScheduling
 @SpringBootApplication
 public class SpringbackendApplication {
+
+	/**
+	 * 애플리케이션 시작 시 시간대를 한국 시간(KST)으로 설정
+	 */
+	@PostConstruct
+	public void init() {
+		// JVM의 기본 시간대를 한국 시간으로 설정
+		TimeZone.setDefault(TimeZone.getTimeZone("Asia/Seoul"));
+		System.out.println("🕐 애플리케이션 시간대가 한국 시간(Asia/Seoul)으로 설정되었습니다.");
+	}
 
 	public static void main(String[] args) {
 		// 1. .env 파일 찾아 메모리에 로드

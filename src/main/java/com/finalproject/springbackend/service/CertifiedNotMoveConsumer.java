@@ -127,13 +127,14 @@ public class CertifiedNotMoveConsumer {
     }
     
     private void sendMessageToClients(String rawMessage) {
-        // rawMessage만 전송 (JSON 래핑 없이)
+        // rawMessage를 JSON 형식으로 래핑하여 전송
+        String jsonMessage = wrapMessageAsJson(rawMessage);
         
         // 기존 방식 (하위 호환성)
         Map<String, ResponseBodyEmitter> emitters = sseService.getCertifiedNotMoveEmitters();
         emitters.forEach((clientId, emitter) -> {
             try {
-                emitter.send(rawMessage, MediaType.TEXT_EVENT_STREAM);
+                emitter.send(jsonMessage, MediaType.TEXT_EVENT_STREAM);
             } catch (IOException e) {
                 log.error("SSE 전송 오류: {}", e.getMessage());
                 emitters.remove(clientId);
@@ -147,8 +148,8 @@ public class CertifiedNotMoveConsumer {
             Map<String, ResponseBodyEmitter> emittersCopy = new ConcurrentHashMap<>(userEmitters);
             emittersCopy.forEach((clientId, emitter) -> {
                 try {
-                    // SSE 메시지 전송 (rawMessage만 전송)
-                    emitter.send(rawMessage, MediaType.TEXT_EVENT_STREAM);
+                    // SSE 메시지 전송 (JSON 형식으로 래핑된 메시지 전송)
+                    emitter.send(jsonMessage, MediaType.TEXT_EVENT_STREAM);
                 } catch (IOException e) {
                     log.warn("SSE 전송 실패 (연결 중단): 사용자 {}, 오류: {}", username, e.getMessage());
                     // 연결이 중단된 경우 제거
@@ -159,6 +160,25 @@ public class CertifiedNotMoveConsumer {
                 }
             });
         });
+    }
+    
+    /**
+     * rawMessage를 JSON 형식으로 래핑하여 반환
+     * @param rawMessage 원본 메시지
+     * @return JSON 형식으로 래핑된 메시지
+     */
+    private String wrapMessageAsJson(String rawMessage) {
+        try {
+            com.fasterxml.jackson.databind.ObjectMapper objectMapper = new com.fasterxml.jackson.databind.ObjectMapper();
+            com.fasterxml.jackson.databind.node.ObjectNode jsonNode = objectMapper.createObjectNode();
+            jsonNode.put("rawMessage", rawMessage);
+            jsonNode.put("timestamp", System.currentTimeMillis());
+            return objectMapper.writeValueAsString(jsonNode);
+        } catch (Exception e) {
+            log.error("JSON 래핑 실패: {}", e.getMessage());
+            // JSON 래핑 실패 시 기본 형식으로 반환
+            return "{\"rawMessage\":\"" + rawMessage.replace("\"", "\\\"") + "\",\"timestamp\":" + System.currentTimeMillis() + "}";
+        }
     }
     
 }

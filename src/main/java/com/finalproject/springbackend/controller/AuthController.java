@@ -4,6 +4,7 @@ import com.finalproject.springbackend.dto.LoginRequestDTO;
 import com.finalproject.springbackend.dto.LoginResponseDTO;
 import com.finalproject.springbackend.service.AuthService;
 import com.finalproject.springbackend.service.PermissionService;
+import com.finalproject.springbackend.service.SseService;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -23,6 +24,7 @@ public class AuthController {
     private static final Logger log = LoggerFactory.getLogger(AuthController.class);
     private final AuthService authService;
     private final PermissionService permissionService;
+    private final SseService sseService;
 
     @PostMapping("/login")
     public ResponseEntity<LoginResponseDTO> login(@Valid @RequestBody LoginRequestDTO loginRequest) {
@@ -51,6 +53,13 @@ public class AuthController {
 
                 // 토큰 무효화 처리
                 authService.revokeToken(token);
+                
+                // SSE 연결 해제
+                if (username != null && !username.equals("알 수 없음")) {
+                    sseService.closeUserConnections(username);
+                    log.info("사용자 {}의 SSE 연결이 해제되었습니다.", username);
+                }
+                
                 // 로그아웃 성공
 
                 return ResponseEntity.ok(Map.of(

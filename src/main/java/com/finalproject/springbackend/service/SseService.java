@@ -4,7 +4,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
-import org.springframework.http.MediaType;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseBodyEmitter;
@@ -23,6 +22,7 @@ public class SseService {
     
     @Autowired
     private AuthService authService;
+    
     
     // 사용자별 SSE 연결 관리 (username -> clientId -> ResponseBodyEmitter)
     private final Map<String, Map<String, ResponseBodyEmitter>> userCertified2TimeEmitters = new ConcurrentHashMap<>(); 

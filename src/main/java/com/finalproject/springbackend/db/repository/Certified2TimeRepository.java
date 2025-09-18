@@ -21,10 +21,10 @@ public interface Certified2TimeRepository extends JpaRepository<Certified2Time, 
     long countByClientIp(String clientIp);
     long countByAlertType(String alertType);
 
-    //시간으로만 찾기
+    //시간으로만 찾기 - 명시적 시간 비교로 시간대 문제 해결
     @Query("""
         SELECT c2 FROM Certified2Time c2
-        WHERE (c2.alertTimeKST BETWEEN :start AND :end)
+        WHERE c2.alertTimeKST >= :start AND c2.alertTimeKST <= :end
         ORDER BY c2.failureCount DESC, c2.alertType ASC, c2.alertTimeKST ASC
     """)
     List<Certified2Time> findByTimesOnly(
@@ -34,7 +34,7 @@ public interface Certified2TimeRepository extends JpaRepository<Certified2Time, 
 
     @Query("""
         SELECT COUNT(c2) FROM Certified2Time c2
-        WHERE (c2.alertTimeKST BETWEEN :start AND :end)
+        WHERE c2.alertTimeKST >= :start AND c2.alertTimeKST <= :end
     """)
     long countByTimesOnly(
             @Param(value = "start") OffsetDateTime start,
@@ -44,8 +44,8 @@ public interface Certified2TimeRepository extends JpaRepository<Certified2Time, 
     //시간 + client_ip 기준으로 찾기
     @Query("""
         SELECT c2 FROM Certified2Time c2
-        WHERE (c2.alertTimeKST BETWEEN :start AND :end)
-          AND (c2.clientIp = :clientIp)
+        WHERE c2.alertTimeKST >= :start AND c2.alertTimeKST <= :end
+          AND c2.clientIp = :clientIp
         ORDER BY c2.failureCount DESC, c2.alertType ASC, c2.alertTimeKST ASC
     """)
     List<Certified2Time> findByC(
@@ -56,8 +56,8 @@ public interface Certified2TimeRepository extends JpaRepository<Certified2Time, 
 
     @Query("""
         SELECT COUNT(c2) FROM Certified2Time c2
-        WHERE (c2.alertTimeKST BETWEEN :start AND :end)
-          AND (c2.clientIp = :clientIp)
+        WHERE c2.alertTimeKST >= :start AND c2.alertTimeKST <= :end
+          AND c2.clientIp = :clientIp
     """)
     long countByC(
             @Param(value = "start") OffsetDateTime start,
@@ -68,8 +68,8 @@ public interface Certified2TimeRepository extends JpaRepository<Certified2Time, 
     //시간 + alert_type
     @Query("""
         SELECT c2 FROM Certified2Time c2
-        WHERE (c2.alertTimeKST BETWEEN :start AND :end)
-          AND (c2.alertType = :alertType)
+        WHERE c2.alertTimeKST >= :start AND c2.alertTimeKST <= :end
+          AND c2.alertType = :alertType
         ORDER BY c2.failureCount DESC, c2.alertType ASC, c2.alertTimeKST ASC
     """)
     List<Certified2Time> findByA(
@@ -80,8 +80,8 @@ public interface Certified2TimeRepository extends JpaRepository<Certified2Time, 
 
     @Query("""
         SELECT COUNT(c2) FROM Certified2Time c2
-        WHERE (c2.alertTimeKST BETWEEN :start AND :end)
-          AND (c2.alertType = :alertType)
+        WHERE c2.alertTimeKST >= :start AND c2.alertTimeKST <= :end
+          AND c2.alertType = :alertType
     """)
     long countByA(
             @Param(value = "start") OffsetDateTime start,
@@ -95,7 +95,7 @@ public interface Certified2TimeRepository extends JpaRepository<Certified2Time, 
     @Query("""
         SELECT c2.clientIp AS clientIp, COUNT(c2) AS count 
         FROM Certified2Time c2
-        WHERE (c2.alertTimeKST BETWEEN :start AND :end)
+        WHERE c2.alertTimeKST >= :start AND c2.alertTimeKST <= :end
         GROUP BY c2.clientIp
         ORDER BY COUNT(c2) DESC
     """)
@@ -116,7 +116,7 @@ public interface Certified2TimeRepository extends JpaRepository<Certified2Time, 
     @Query("""
         SELECT c2.alertType AS alertType, COUNT(c2) AS count
         FROM Certified2Time c2
-        WHERE (c2.alertTimeKST BETWEEN :start AND :end)
+        WHERE c2.alertTimeKST >= :start AND c2.alertTimeKST <= :end
         GROUP BY c2.alertType
         ORDER BY COUNT(c2) DESC
     """)
