@@ -1,0 +1,122 @@
+[
+    {
+        "id": "ae9e1b05-8796-4fdc-a48c-d67f2ad2692e",
+        "eventTimeKST": "2025-08-28T12:24:57.285558Z",
+        "processTimeKST": "2025-09-15T19:04:03.210769Z",
+        "principal": "User:dw",
+        "clientIp": "10.2.0.140",
+        "methodName": "accessAdminPanel",
+        "granted": false,
+        "resourceType": "SYSTEM_RESOURCE",
+        "resourceName": "/admin/settings",
+        "operation": "EXECUTE"
+    },
+    {
+        "id": "ec3059ad-a7e2-462a-8db6-bb7541223fa7",
+        "eventTimeKST": "2025-08-29T04:20:43.416101Z",
+        "processTimeKST": "2025-09-07T06:35:02.519148Z",
+        "principal": "User:dw",
+        "clientIp": "220.69.191.34",
+        "methodName": "accessAdminPanel",
+        "granted": false,
+        "resourceType": "SYSTEM_RESOURCE",
+        "resourceName": "/api/reports/57",
+        "operation": "WRITE"
+    },
+    {
+        "id": "3af935df-5a60-4c96-9f05-4e508172c971",
+        "eventTimeKST": "2025-08-29T05:37:54.314621Z",
+        "processTimeKST": "2025-09-16T17:17:44.611499Z",
+        "principal": "User:cw",
+        "clientIp": "220.69.187.144",
+        "methodName": "accessAdminPanel",
+        "granted": false,
+        "resourceType": "API_ENDPOINT",
+        "resourceName": "/api/finance/data",
+        "operation": "EXECUTE"
+    },
+    {
+        "id": "4ff7fbfe-96a8-4196-8ee6-6c7ffc7df91b",
+        "eventTimeKST": "2025-08-29T08:46:27.658714Z",
+        "processTimeKST": "2025-09-01T16:28:40.09024Z",
+        "principal": "User:cw",
+        "clientIp": "203.252.82.217",
+        "methodName": "getUserData",
+        "granted": false,
+        "resourceType": "WEB_PAGE",
+        "resourceName": "/api/sensitive/48",
+        "operation": "DELETE"
+    },
+    {
+        "id": "99dfaae3-59f6-45fb-8cf6-757ef8d35284",
+        "eventTimeKST": "2025-08-29T11:03:27.504653Z",
+        "processTimeKST": "2025-09-07T15:54:27.408384Z",
+        "principal": "User:강훈",
+        "clientIp": "220.69.124.94",
+        "methodName": "accessAdminPanel",
+        "granted": false,
+        "resourceType": "SYSTEM_RESOURCE",
+        "resourceName": "/api/documents/1459",
+        "operation": "WRITE"
+    },
+    {
+        "id": "68dc16ac-52c3-45c6-bbdf-e040d33fcbfd",
+        "eventTimeKST": "2025-08-30T01:24:45.121921Z",
+        "processTimeKST": "2025-09-14T08:27:48.323335Z",
+        "principal": "User:dw",
+        "clientIp": "192.168.10.161",
+        "methodName": "accessAdminPanel",
+        "granted": false,
+        "resourceType": "WEB_PAGE",
+        "resourceName": "/api/sensitive/13",
+        "operation": "WRITE"
+    },
+    {
+        "id": "5dc66709-1ff7-42f8-acb4-455c03093b11",
+        "eventTimeKST": "2025-08-30T01:45:20.642068Z",
+        "processTimeKST": "2025-09-08T16:16:18.016836Z",
+        "principal": "User:강훈",
+        "clientIp": "203.252.124.62",
+        "methodName": "modifySettings",
+        "granted": false,
+        "resourceType": "DATABASE_TABLE",
+        "resourceName": "/api/finance/data",
+        "operation": "DELETE"
+    },
+    {
+        "id": "e8c3be7d-3693-42d1-86a5-365f2488d2ea",
+        "eventTimeKST": "2025-08-30T02:00:52.225999Z",
+        "processTimeKST": "2025-09-14T13:11:56.502379Z",
+        "principal": "User:cw",
+        "clientIp": "112.220.0.44",
+        "methodName": "getUserData",
+        "granted": false,
+        "resourceType": "WEB_PAGE",
+        "resourceName": "/api/profiles/102",
+        "operation": "WRITE"
+    },
+    {
+        "id": "0e0c87ab-7b1c-4c21-9760-bd07c069a6a2",
+        "eventTimeKST": "2025-08-30T06:20:25.045977Z",
+        "processTimeKST": "2025-09-08T18:00:37.112307Z",
+        "principal": "User:dr",
+        "clientIp": "210.181.240.53",
+        "methodName": "modifySettings",
+        "granted": false,
+        "resourceType": "SYSTEM_RESOURCE",
+        "resourceName": "/admin/settings",
+        "operation": "DELETE"
+    },
+    {
+        "id": "8513fd3c-63a0-4055-871b-2ebe6f708be5",
+        "eventTimeKST": "2025-08-30T10:35:58.396886Z",
+        "processTimeKST": "2025-09-12T17:28:21.800216Z",
+        "principal": "User:cw2",
+        "clientIp": "168.126.217.13",
+        "methodName": "updateProfile",
+        "granted": false,
+        "resourceType": "WEB_PAGE",
+        "resourceName": "/api/finance/data",
+        "operation": "EXECUTE"
+    }
+]
