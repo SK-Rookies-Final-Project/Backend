@@ -41,7 +41,7 @@ public class AuthService {
         String username = loginRequest.getUsername();
         String password = loginRequest.getPassword();
 
-        log.info("로그인 시도: {}", username);
+        // 인증 요청 처리
 
         try {
             List<String> allowedTopics = topicService.listTopics(username, password);
@@ -49,10 +49,9 @@ public class AuthService {
             Permission userPermission = permissionService.getUserPermission(username);
             String permissionDescription = userPermission != null ? userPermission.getDescription() : "권한 없음";
 
-            log.info("로그인 성공: {} ({}개 토픽, 권한: {})", username, allowedTopics.size(), permissionDescription);
-            
-            // 사용자 비밀번호 저장 (Consumer 시작용)
+            // 로그인 성공 - 사용자 비밀번호 저장 (Consumer 시작용)
             userPasswords.put(username, password);
+            log.debug("사용자 {}의 비밀번호 저장 완료", username);
             
             return LoginResponseDTO.builder()
                     .success(true)
@@ -128,18 +127,26 @@ public class AuthService {
             if (token != null && !token.trim().isEmpty()) {
                 blacklistedTokens.add(token);
                 String username = getUsernameFromToken(token);
-                log.info("토큰 무효화 완료: {}", username != null ? username : "알 수 없음");
+                // 토큰 무효화 완료
                 
-                // 로그아웃 시 사용자 비밀번호 제거
+                // 로그아웃 시 사용자 비밀번호 제거 (SSE Consumer 중지 후)
                 if (username != null) {
-                    userPasswords.remove(username);
-                    log.info("사용자 {}의 비밀번호 정보 제거", username);
+                    // SseService에서 Consumer 중지 후 비밀번호 제거하도록 수정
+                    // 사용자 토큰 무효화 완료
                 }
                 
                 cleanupExpiredTokens();
             }
         } catch (Exception e) {
             log.error("토큰 무효화 중 오류 발생: {}", e.getMessage());
+        }
+    }
+    
+    // 로그아웃 시 사용자 비밀번호 제거 (SseService에서 호출)
+    public void removeUserPassword(String username) {
+        if (username != null) {
+            userPasswords.remove(username);
+            // 사용자 비밀번호 정보 제거
         }
     }
 

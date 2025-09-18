@@ -23,7 +23,7 @@ public class TopicService {
         
         for (int attempt = 1; attempt <= MAX_RETRIES; attempt++) {
             try (AdminClient admin = factory.createAdminClient(username, password)) {
-                log.info("Kafka 토픽 조회 시도 {}/{}: {}", attempt, MAX_RETRIES, username);
+                // Kafka 토픽 조회 시도
                 
                 List<String> topics = admin.listTopics()
                         .names()
@@ -33,7 +33,7 @@ public class TopicService {
                         .sorted()
                         .collect(Collectors.toList());
                 
-                log.info("Kafka 토픽 조회 성공: {} ({}개 토픽)", username, topics.size());
+                // Kafka 토픽 조회 성공
                 return topics;
                 
             } catch (Exception e) {

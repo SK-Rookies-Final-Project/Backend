@@ -25,7 +25,7 @@ public class PermissionService {
         userPermissions.put("sd", Permission.MANAGER);
         userPermissions.put("urd", Permission.MONITOR);
         
-        log.info("사용자 권한 초기화 완료: {}", userPermissions);
+        // 사용자 권한 초기화 완료
     }
 
     public boolean hasPermission(String username, Permission permission) {
@@ -106,7 +106,7 @@ public class PermissionService {
 
     public void setUserPermission(String username, Permission permission) {
         userPermissions.put(username, permission);
-        log.info("사용자 권한 변경: {} -> {}", username, permission.getDescription());
+        // 사용자 권한 변경
     }
 }
 

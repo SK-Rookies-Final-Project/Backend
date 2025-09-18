@@ -9,10 +9,11 @@ import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
 import org.apache.kafka.common.serialization.StringDeserializer;
+import org.apache.kafka.common.serialization.ByteArrayDeserializer;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
-import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
+import org.springframework.web.servlet.mvc.method.annotation.ResponseBodyEmitter;
 
 import java.io.IOException;
 import java.time.Duration;
@@ -39,18 +40,18 @@ public class Certified2TimeConsumer {
     @Value("${KAFKA_TOPIC_CERTIFIED_2TIME}")
     private String topicName;
     
-    private final Map<String, Consumer<String, String>> userConsumers = new ConcurrentHashMap<>();
+    private final Map<String, Consumer<String, byte[]>> userConsumers = new ConcurrentHashMap<>();
     private final Map<String, ExecutorService> userExecutors = new ConcurrentHashMap<>();
     public void startConsumerForUser(String username, String password) {
         if (userConsumers.containsKey(username)) {
-            log.info("사용자 {}의 Certified2TimeConsumer 이미 실행 중", username);
+            // Consumer 이미 실행 중
             return;
         }
         
-        log.info("사용자 {}의 Certified2TimeConsumer 시작", username);
+        // Certified2TimeConsumer 시작
         
         try {
-            Consumer<String, String> consumer = createConsumer(username, password);
+            Consumer<String, byte[]> consumer = createConsumer(username, password);
             userConsumers.put(username, consumer);
             
             ExecutorService executor = Executors.newSingleThreadExecutor();
@@ -59,13 +60,26 @@ public class Certified2TimeConsumer {
             executor.submit(() -> {
                 try {
                     consumer.subscribe(Collections.singletonList(topicName));
-                    log.info("사용자 {}가 토픽 {} 구독 시작", username, topicName);
+                    // 토픽 구독 시작
                     
                     while (!Thread.currentThread().isInterrupted()) {
-                        ConsumerRecords<String, String> records = consumer.poll(Duration.ofMillis(1000));
-                        for (ConsumerRecord<String, String> record : records) {
-                            String message = record.value();
-                            log.info("반복적인 로그인 시도 로그 수신: {}", message);
+                        ConsumerRecords<String, byte[]> records = consumer.poll(Duration.ofMillis(1000));
+                        for (ConsumerRecord<String, byte[]> record : records) {
+                            byte[] rawBytes = record.value();
+                            // 반복적인 로그인 시도 로그 수신
+                            
+                            // 바이트 배열을 안전하게 문자열로 변환
+                            String message;
+                            try {
+                                message = new String(rawBytes, "UTF-8");
+                                log.debug("변환된 메시지: {}", message);
+                            } catch (Exception e) {
+                                log.error("바이트 배열을 문자열로 변환 실패: {}", e.getMessage());
+                                message = "{\"error\": \"메시지 변환 실패\", \"rawBytes\": \"" + 
+                                         java.util.Base64.getEncoder().encodeToString(rawBytes) + "\"}";
+                            }
+                            
+                            // SSE로 rawMessage만 전송
                             sendMessageToClients(message);
                         }
                     }
@@ -82,11 +96,11 @@ public class Certified2TimeConsumer {
     }
 
     public void stopConsumerForUser(String username) {
-        Consumer<String, String> consumer = userConsumers.remove(username);
+        Consumer<String, byte[]> consumer = userConsumers.remove(username);
         ExecutorService executor = userExecutors.remove(username);
         
         if (consumer != null) {
-            log.info("사용자 {}의 Certified2TimeConsumer 중지", username);
+            // Certified2TimeConsumer 중지
             consumer.close();
         }
         
@@ -95,12 +109,12 @@ public class Certified2TimeConsumer {
         }
     }
 
-    private Consumer<String, String> createConsumer(String username, String password) {
+    private Consumer<String, byte[]> createConsumer(String username, String password) {
         Properties props = new Properties();
         props.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers);
         props.put(ConsumerConfig.GROUP_ID_CONFIG, consumerGroupId + "-" + username);
         props.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class.getName());
-        props.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class.getName());
+        props.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, ByteArrayDeserializer.class.getName());
         props.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "latest");
         props.put(ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG, true);
         props.put("security.protocol", "SASL_PLAINTEXT");
@@ -112,14 +126,14 @@ public class Certified2TimeConsumer {
         return new KafkaConsumer<>(props);
     }
     
-    private void sendMessageToClients(String message) {
+    private void sendMessageToClients(String rawMessage) {
+        // rawMessage만 전송 (JSON 래핑 없이)
+        
         // 기존 방식 (하위 호환성)
-        Map<String, SseEmitter> emitters = sseService.getCertified2TimeEmitters();
+        Map<String, ResponseBodyEmitter> emitters = sseService.getCertified2TimeEmitters();
         emitters.forEach((clientId, emitter) -> {
             try {
-                emitter.send(SseEmitter.event()
-                        .name("auth_failure")
-                        .data(message, MediaType.APPLICATION_JSON));
+                emitter.send(rawMessage, MediaType.TEXT_EVENT_STREAM);
             } catch (IOException e) {
                 log.error("SSE 전송 오류: {}", e.getMessage());
                 emitters.remove(clientId);
@@ -127,15 +141,14 @@ public class Certified2TimeConsumer {
         });
         
         // 사용자별 SSE 연결에도 전송
-        Map<String, Map<String, SseEmitter>> allUserEmitters = sseService.getAllUserCertified2TimeEmitters();
+        Map<String, Map<String, ResponseBodyEmitter>> allUserEmitters = sseService.getAllUserCertified2TimeEmitters();
         allUserEmitters.forEach((username, userEmitters) -> {
             // ConcurrentModificationException 방지를 위해 복사본 생성
-            Map<String, SseEmitter> emittersCopy = new ConcurrentHashMap<>(userEmitters);
+            Map<String, ResponseBodyEmitter> emittersCopy = new ConcurrentHashMap<>(userEmitters);
             emittersCopy.forEach((clientId, emitter) -> {
                 try {
-                    emitter.send(SseEmitter.event()
-                            .name("auth_failure")
-                            .data(message, MediaType.APPLICATION_JSON));
+                    // SSE 메시지 전송 (rawMessage만 전송)
+                    emitter.send(rawMessage, MediaType.TEXT_EVENT_STREAM);
                 } catch (IOException e) {
                     log.warn("SSE 전송 실패 (연결 중단): 사용자 {}, 오류: {}", username, e.getMessage());
                     // 연결이 중단된 경우 제거
@@ -147,4 +160,5 @@ public class Certified2TimeConsumer {
             });
         });
     }
+    
 }
