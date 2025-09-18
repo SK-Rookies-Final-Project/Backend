@@ -1,0 +1,290 @@
+- - =============================================
+-- PostgreSQL 더미 데이터 생성 쿼리 (각 테이블 100개)
+-- =============================================
+- - 1. certified-2time 테이블 (100개)
+INSERT INTO "certified-2time" (id, client_ip, alert_time_kst, alert_type, description, failure_count)
+SELECT
+gen_random_uuid()::text as id,
+REPLACE(
+    CASE (random() * 9)::int
+        WHEN 0 THEN '192.168.1.' || (random() * 255)::int
+        WHEN 1 THEN '10.0.0.' || (random() * 255)::int
+        WHEN 2 THEN '172.16.' || (random() * 255)::int || '.' || (random() * 255)::int
+        WHEN 3 THEN '203.104.' || (random() * 255)::int || '.' || (random() * 255)::int
+        WHEN 4 THEN '45.156.' || (random() * 255)::int || '.' || (random() * 255)::int
+        WHEN 5 THEN '175.120.' || (random() * 255)::int || '.' || (random() * 255)::int
+        WHEN 6 THEN '121.78.' || (random() * 255)::int || '.' || (random() * 255)::int
+        WHEN 7 THEN '58.234.' || (random() * 255)::int || '.' || (random() * 255)::int
+        ELSE '14.49.' || (random() * 255)::int || '.' || (random() * 255)::int
+    END, ' ', ''
+) as client_ip,
+NOW() - INTERVAL '1 day' * (random() * 30) - INTERVAL '1 hour' * (random() * 24) as alert_time_kst,
+CASE (random() * 4)::int
+WHEN 0 THEN 'MULTIPLE_FAILURES'
+WHEN 1 THEN 'RAPID_SUCCESSIVE_ATTEMPTS'
+WHEN 2 THEN 'CREDENTIAL_BRUTE_FORCE'
+ELSE 'SUSPICIOUS_PATTERN'
+END as alert_type,
+'Multiple authentication failures detected from IP ' ||
+REPLACE(
+CASE (random() * 3)::int
+WHEN 0 THEN 'within 2 minutes'
+WHEN 1 THEN 'within 5 minutes'
+ELSE 'within 10 minutes'
+END, ' ', ''
+) as description,
+(random() * 20 + 2)::int as failure_count
+FROM generate_series(1, 100);
+- - 2. certified-notMove 테이블 (100개)
+INSERT INTO "certified-notMove" (id, client_ip, alert_time_kst, alert_type, description, failure_count)
+SELECT
+gen_random_uuid()::text as id,
+REPLACE(
+CASE (random() * 9)::int
+WHEN 0 THEN '192.168.2.' || (random() * 255)::int
+WHEN 1 THEN '10.1.0.' || (random() * 255)::int
+WHEN 2 THEN '172.17.' || (random() * 255)::int || '.' || (random() * 255)::int
+WHEN 3 THEN '211.45.' || (random() * 255)::int || '.' || (random() * 255)::int
+WHEN 4 THEN '61.84.' || (random() * 255)::int || '.' || (random() * 255)::int
+WHEN 5 THEN '118.67.' || (random() * 255)::int || '.' || (random() * 255)::int
+WHEN 6 THEN '222.112.' || (random() * 255)::int || '.' || (random() * 255)::int
+WHEN 7 THEN '125.209.' || (random() * 255)::int || '.' || (random() * 255)::int
+ELSE '39.7.' || (random() * 255)::int || '.' || (random() * 255)::int
+END, ' ', ''
+) as client_ip,
+NOW() - INTERVAL '1 day' * (random() * 25) - INTERVAL '1 hour' * (random() * 24) as alert_time_kst,
+CASE (random() * 3)::int
+WHEN 0 THEN 'INACTIVITY_AFTER_FAILURE'
+WHEN 1 THEN 'ABANDONED_SESSION'
+ELSE 'TIMEOUT_PATTERN'
+END as alert_type,
+'IP ' ||
+REPLACE(
+CASE (random() * 9)::int
+WHEN 0 THEN '192.168.2.' || (random() * 255)::int
+WHEN 1 THEN '10.1.0.' || (random() * 255)::int
+WHEN 2 THEN '172.17.' || (random() * 255)::int || '.' || (random() * 255)::int
+WHEN 3 THEN '211.45.' || (random() * 255)::int || '.' || (random() * 255)::int
+WHEN 4 THEN '61.84.' || (random() * 255)::int || '.' || (random() * 255)::int
+WHEN 5 THEN '118.67.' || (random() * 255)::int || '.' || (random() * 255)::int
+WHEN 6 THEN '222.112.' || (random() * 255)::int || '.' || (random() * 255)::int
+WHEN 7 THEN '125.209.' || (random() * 255)::int || '.' || (random() * 255)::int
+ELSE '39.7.' || (random() * 255)::int || '.' || (random() * 255)::int
+END, ' ', ''
+) || ' showed no activity for ' ||
+CASE (random() * 4)::int
+WHEN 0 THEN '10seconds'
+WHEN 1 THEN '30seconds'
+WHEN 2 THEN '5minutes'
+ELSE '10minutes'
+END || ' after ' || (random() * 5 + 1)::int || ' authentication failure(s).' as description,
+(random() * 10 + 1)::int as failure_count
+FROM generate_series(1, 100);
+- - 3. resource-level-false 테이블 (100개)
+INSERT INTO "resource-level-false" (id, client_ip, event_time_kst, granted, method_name, operation, principal, processing_time_kst, resource_name, resource_type)
+SELECT
+gen_random_uuid()::text as id,
+REPLACE(
+CASE (random() * 8)::int
+WHEN 0 THEN '192.168.10.' || (random() * 255)::int
+WHEN 1 THEN '10.2.0.' || (random() * 255)::int
+WHEN 2 THEN '172.20.' || (random() * 255)::int || '.' || (random() * 255)::int
+WHEN 3 THEN '220.69.' || (random() * 255)::int || '.' || (random() * 255)::int
+WHEN 4 THEN '112.220.' || (random() * 255)::int || '.' || (random() * 255)::int
+WHEN 5 THEN '168.126.' || (random() * 255)::int || '.' || (random() * 255)::int
+WHEN 6 THEN '203.252.' || (random() * 255)::int || '.' || (random() * 255)::int
+ELSE '210.181.' || (random() * 255)::int || '.' || (random() * 255)::int
+END, ' ', ''
+) as client_ip,
+NOW() - INTERVAL '1 day' * (random() * 20) - INTERVAL '1 hour' * (random() * 24) as event_time_kst,
+false as granted,
+CASE (random() * 6)::int
+WHEN 0 THEN 'getUserData'
+WHEN 1 THEN 'updateProfile'
+WHEN 2 THEN 'deleteRecord'
+WHEN 3 THEN 'viewSensitiveInfo'
+WHEN 4 THEN 'modifySettings'
+ELSE 'accessAdminPanel'
+END as method_name,
+REPLACE(
+CASE (random() * 4)::int
+WHEN 0 THEN 'READ'
+WHEN 1 THEN 'WRITE'
+WHEN 2 THEN 'DELETE'
+ELSE 'EXECUTE'
+END, ' ', ''
+) as operation,
+'User:' ||
+CASE (random() * 4)::int
+WHEN 0 THEN 'dr'
+WHEN 1 THEN 'dw'
+WHEN 2 THEN 'cw'
+WHEN 3 THEN 'cw2'
+ELSE '강훈'
+END as principal,
+NOW() - INTERVAL '1 day' * (random() * 20) - INTERVAL '1 hour' * (random() * 24) - INTERVAL '1 second' * (random() * 10) as processing_time_kst,
+REPLACE(
+CASE (random() * 8)::int
+WHEN 0 THEN '/api/users/' || (random() * 1000 + 1)::int
+WHEN 1 THEN '/api/profiles/' || (random() * 500 + 1)::int
+WHEN 2 THEN '/api/documents/' || (random() * 2000 + 1)::int
+WHEN 3 THEN '/admin/settings'
+WHEN 4 THEN '/api/reports/' || (random() * 100 + 1)::int
+WHEN 5 THEN '/api/finance/data'
+WHEN 6 THEN '/system/config'
+ELSE '/api/sensitive/' || (random() * 50 + 1)::int
+END, ' ', ''
+) as resource_name,
+CASE (random() * 5)::int
+WHEN 0 THEN 'API_ENDPOINT'
+WHEN 1 THEN 'DATABASE_TABLE'
+WHEN 2 THEN 'FILE_RESOURCE'
+WHEN 3 THEN 'WEB_PAGE'
+ELSE 'SYSTEM_RESOURCE'
+END as resource_type
+FROM generate_series(1, 100);
+- - 4. system-level-false 테이블 (100개)
+INSERT INTO "system-level-false" (id, client_ip, granted, method_name, operation, principal, resource_type, resource_name, processing_time_kst, event_time_kst)
+SELECT
+gen_random_uuid()::text as id,
+REPLACE(
+CASE (random() * 8)::int
+WHEN 0 THEN '192.168.100.' || (random() * 255)::int
+WHEN 1 THEN '10.10.0.' || (random() * 255)::int
+WHEN 2 THEN '172.25.' || (random() * 255)::int || '.' || (random() * 255)::int
+WHEN 3 THEN '106.101.' || (random() * 255)::int || '.' || (random() * 255)::int
+WHEN 4 THEN '223.130.' || (random() * 255)::int || '.' || (random() * 255)::int
+WHEN 5 THEN '59.28.' || (random() * 255)::int || '.' || (random() * 255)::int
+WHEN 6 THEN '183.98.' || (random() * 255)::int || '.' || (random() * 255)::int
+ELSE '49.175.' || (random() * 255)::int || '.' || (random() * 255)::int
+END, ' ', ''
+) as client_ip,
+false as granted,
+CASE (random() * 8)::int
+WHEN 0 THEN 'createSystemUser'
+WHEN 1 THEN 'modifySystemConfig'
+WHEN 2 THEN 'accessSystemLogs'
+WHEN 3 THEN 'executeSystemCommand'
+WHEN 4 THEN 'manageServices'
+WHEN 5 THEN 'viewSystemMetrics'
+WHEN 6 THEN 'backupDatabase'
+ELSE 'restartService'
+END as method_name,
+REPLACE(
+CASE (random() * 5)::int
+WHEN 0 THEN 'CREATE'
+WHEN 1 THEN 'READ'
+WHEN 2 THEN 'UPDATE'
+WHEN 3 THEN 'DELETE'
+ELSE 'EXECUTE'
+END, ' ', ''
+) as operation,
+'User:' ||
+CASE (random() * 4)::int
+WHEN 0 THEN 'dr'
+WHEN 1 THEN 'dw'
+WHEN 2 THEN 'cw'
+WHEN 3 THEN 'cw2'
+ELSE '강훈'
+END as principal,
+CASE (random() * 6)::int
+WHEN 0 THEN 'SYSTEM_CONFIG'
+WHEN 1 THEN 'DATABASE_ADMIN'
+WHEN 2 THEN 'SERVICE_CONTROL'
+WHEN 3 THEN 'LOG_FILES'
+WHEN 4 THEN 'BACKUP_SYSTEM'
+ELSE 'MONITORING_TOOLS'
+END as resource_type,
+REPLACE(
+CASE (random() * 10)::int
+WHEN 0 THEN '/etc/system/config.xml'
+WHEN 1 THEN '/var/log/system.log'
+WHEN 2 THEN '/usr/bin/admin_tool'
+WHEN 3 THEN '/opt/services/webapp'
+WHEN 4 THEN '/db/admin/backup'
+WHEN 5 THEN '/system/metrics'
+WHEN 6 THEN '/etc/security/policies'
+WHEN 7 THEN '/var/backup/database'
+WHEN 8 THEN '/usr/sbin/service_manager'
+ELSE '/opt/monitoring/dashboard'
+END, ' ', ''
+) as resource_name,
+NOW() - INTERVAL '1 day' * (random() * 15) - INTERVAL '1 hour' * (random() * 24) - INTERVAL '1 second' * (random() * 30) as processing_time_kst,
+NOW() - INTERVAL '1 day' * (random() * 15) - INTERVAL '1 hour' * (random() * 24) as event_time_kst
+FROM generate_series(1, 100);
+- - =============================================
+-- 모든 테이블의 client_ip를 5가지 종류로 통일
+-- =============================================
+- - 5가지 고정 IP 주소
+-- 192.168.1.100
+-- 192.168.1.200
+
+-- 10.0.0.50
+-- 172.16.0.10
+-- 203.104.144.200
+
+- - 1. certified-2time 테이블 업데이트
+UPDATE "certified-2time"
+SET client_ip = CASE (random() * 4)::int
+WHEN 0 THEN '192.168.1.100'
+WHEN 1 THEN '192.168.1.200'
+WHEN 2 THEN '10.0.0.50'
+WHEN 3 THEN '172.16.0.10'
+ELSE '203.104.144.200'
+END;
+- - 2. certified-notMove 테이블 업데이트
+UPDATE "certified-notMove"
+SET client_ip = CASE (random() * 4)::int
+WHEN 0 THEN '192.168.1.100'
+WHEN 1 THEN '192.168.1.200'
+WHEN 2 THEN '10.0.0.50'
+WHEN 3 THEN '172.16.0.10'
+ELSE '203.104.144.200'
+END;
+- - 3. resource-level-false 테이블 업데이트
+UPDATE "resource-level-false"
+SET client_ip = CASE (random() * 4)::int
+WHEN 0 THEN '192.168.1.100'
+WHEN 1 THEN '192.168.1.200'
+WHEN 2 THEN '10.0.0.50'
+WHEN 3 THEN '172.16.0.10'
+ELSE '203.104.144.200'
+END;
+- - 4. system-level-false 테이블 업데이트
+UPDATE "system-level-false"
+SET client_ip = CASE (random() * 4)::int
+WHEN 0 THEN '192.168.1.100'
+WHEN 1 THEN '192.168.1.200'
+WHEN 2 THEN '10.0.0.50'
+WHEN 3 THEN '172.16.0.10'
+ELSE '203.104.144.200'
+END;
+- - =============================================
+-- 결과 확인 쿼리들
+-- =============================================
+- - 각 테이블별 client_ip 분포 확인
+SELECT 'certified-2time' as table_name, client_ip, COUNT(*) as count
+FROM "certified-2time"
+GROUP BY client_ip
+UNION ALL
+SELECT 'certified-notMove' as table_name, client_ip, COUNT(*) as count
+FROM "certified-notMove"
+GROUP BY client_ip
+UNION ALL
+SELECT 'resource-level-false' as table_name, client_ip, COUNT(*) as count
+FROM "resource-level-false"
+GROUP BY client_ip
+UNION ALL
+SELECT 'system-level-false' as table_name, client_ip, COUNT(*) as count
+FROM "system-level-false"
+GROUP BY client_ip
+ORDER BY table_name, client_ip;
+- - 전체 고유 client_ip 개수 확인 (5개여야 함)
+SELECT DISTINCT client_ip FROM "certified-2time"
+UNION
+SELECT DISTINCT client_ip FROM "certified-notMove"
+UNION
+SELECT DISTINCT client_ip FROM "resource-level-false"
+UNION
+SELECT DISTINCT client_ip FROM "system-level-false"
+ORDER BY client_ip;
