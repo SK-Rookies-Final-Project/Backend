@@ -2,9 +2,6 @@ package com.finalproject.springbackend.aspect;
 
 import com.finalproject.springbackend.annotation.RequirePermission;
 import com.finalproject.springbackend.dto.Permission;
-import com.finalproject.springbackend.service.AuthService;
-import com.finalproject.springbackend.service.PermissionService;
-import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.aspectj.lang.ProceedingJoinPoint;
@@ -15,21 +12,20 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+
+import java.util.Collection;
 import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 @Aspect
 @Component
-@RequiredArgsConstructor
 public class PermissionAspect {
 
     private static final Logger log = LoggerFactory.getLogger(PermissionAspect.class);
-    private final PermissionService permissionService;
-    private final AuthService authService;
 
     @Around("@annotation(requirePermission)")
     public Object checkPermission(ProceedingJoinPoint joinPoint, RequirePermission requirePermission) throws Throwable {
-        log.info("🔍 AOP 권한 체크 시작: {}", joinPoint.getSignature().getName());
+        // AOP 권한 체크 시작
         
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         
@@ -42,10 +38,10 @@ public class PermissionAspect {
         String username = authentication.getName();
         Permission[] requiredPermissions = requirePermission.value();
         
-        log.info("👤 사용자: {}, 필요한 권한: {}", username, java.util.Arrays.toString(requiredPermissions));
-
         // 사용자 권한 확인
-        boolean hasPermission = permissionService.hasAnyPermission(username, requiredPermissions);
+
+        // Spring Security 권한 확인
+        boolean hasPermission = checkSpringSecurityPermissions(authentication, requiredPermissions);
         
         if (!hasPermission) {
             log.warn("사용자 {}가 필요한 권한 없이 API 접근 시도: {}", username, requiredPermissions);
@@ -72,18 +68,52 @@ public class PermissionAspect {
             }
         }
 
-        log.info("✅ 사용자 {}가 권한 확인 후 API 접근: {}", username, requiredPermissions);
+        // 사용자 권한 확인 후 API 접근
         
         try {
-            log.info("🚀 컨트롤러 메서드 실행 시작: {}", joinPoint.getSignature().getName());
+            // 컨트롤러 메서드 실행 시작
             Object result = joinPoint.proceed();
-            log.info("✅ 컨트롤러 메서드 실행 완료: {}", joinPoint.getSignature().getName());
+            // 컨트롤러 메서드 실행 완료
             return result;
         } catch (Exception e) {
             log.error("❌ API 실행 중 오류 발생: {}", e.getMessage(), e);
             // 원래 메서드의 반환 타입을 유지하기 위해 예외를 다시 던짐
             throw e;
         }
+    }
+    
+    private boolean checkSpringSecurityPermissions(Authentication authentication, Permission[] requiredPermissions) {
+        // Spring Security의 authorities에서 권한 확인
+        Collection<? extends org.springframework.security.core.GrantedAuthority> authorities = 
+            authentication.getAuthorities();
+        
+        for (Permission requiredPermission : requiredPermissions) {
+            String requiredRole = "ROLE_" + requiredPermission.name();
+            
+            // ADMIN 권한이 있으면 모든 권한 허용
+            if (authorities.stream().anyMatch(auth -> auth.getAuthority().equals("ROLE_ADMIN"))) {
+                log.debug("ADMIN 권한으로 모든 접근 허용");
+                return true;
+            }
+            
+            // MANAGER 권한이 있으면 MONITOR 권한도 허용
+            if (requiredPermission == Permission.MONITOR && 
+                authorities.stream().anyMatch(auth -> auth.getAuthority().equals("ROLE_MANAGER"))) {
+                log.debug("MANAGER 권한으로 MONITOR 접근 허용");
+                return true;
+            }
+            
+            // 정확한 권한 매칭
+            if (authorities.stream().anyMatch(auth -> auth.getAuthority().equals(requiredRole))) {
+                log.debug("권한 매칭 성공: {}", requiredRole);
+                return true;
+            }
+        }
+        
+        log.debug("권한 매칭 실패. 사용자 권한: {}, 필요한 권한: {}", 
+            authorities.stream().map(auth -> auth.getAuthority()).toList(),
+            java.util.Arrays.toString(requiredPermissions));
+        return false;
     }
     
     private boolean isSseEndpoint(ProceedingJoinPoint joinPoint) {

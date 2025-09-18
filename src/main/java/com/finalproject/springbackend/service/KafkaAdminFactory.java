@@ -14,6 +14,11 @@ public class KafkaAdminFactory {
 
     @Value("${OHIO_KAFKA_BOOTSTRAP_SERVERS}")
     private String bootstrap;
+    
+    @jakarta.annotation.PostConstruct
+    public void init() {
+        // KafkaAdminFactory 초기화 완료
+    }
 
     public AdminClient createAdminClient(String username, String password) {
         Properties props = new Properties();
@@ -30,7 +35,16 @@ public class KafkaAdminFactory {
         props.put(AdminClientConfig.RETRIES_CONFIG, 3);
         props.put(AdminClientConfig.RETRY_BACKOFF_MS_CONFIG, 1000);
         
-        log.info("Creating AdminClient to {} for user {} with timeout settings", bootstrap, username);
-        return AdminClient.create(props);
+        // AdminClient 생성
+        log.debug("Kafka AdminClient Properties: {}", props);
+        
+        try {
+            AdminClient client = AdminClient.create(props);
+            // AdminClient 생성 성공
+            return client;
+        } catch (Exception e) {
+            log.error("Failed to create AdminClient for user {}: {}", username, e.getMessage(), e);
+            throw e;
+        }
     }
 }

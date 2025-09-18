@@ -26,15 +26,15 @@ public class AuthController {
 
     @PostMapping("/login")
     public ResponseEntity<LoginResponseDTO> login(@Valid @RequestBody LoginRequestDTO loginRequest) {
-        log.info("로그인 시도: {}", loginRequest.getUsername());
+        // 로그인 시도
 
         LoginResponseDTO response = authService.authenticate(loginRequest);
 
         if (response.isSuccess()) {
-            log.info("로그인 성공: {}", loginRequest.getUsername());
+            // 로그인 성공
             return ResponseEntity.ok(response);
         } else {
-            log.warn("로그인 실패: {}", loginRequest.getUsername());
+            log.warn("로그인 실패: {} - {}", loginRequest.getUsername(), response.getMessage());
             return ResponseEntity.badRequest().body(response);
         }
     }
@@ -44,14 +44,14 @@ public class AuthController {
                                     Authentication authentication) {
         try {
             String username = authentication != null ? authentication.getName() : "알 수 없음";
-            log.info("로그아웃 시도: {}", username);
+            // 로그아웃 시도
 
             if (authHeader != null && authHeader.startsWith("Bearer ")) {
                 String token = authHeader.substring(7);
 
                 // 토큰 무효화 처리
                 authService.revokeToken(token);
-                log.info("로그아웃 성공: {}", username);
+                // 로그아웃 성공
 
                 return ResponseEntity.ok(Map.of(
                         "success", true,
