@@ -1,15 +1,12 @@
 package com.finalproject.springbackend.service;
 
+import com.finalproject.springbackend.util.KafkaMessageUtil;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.apache.kafka.clients.consumer.Consumer;
-import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
-import org.apache.kafka.clients.consumer.KafkaConsumer;
-import org.apache.kafka.common.serialization.StringDeserializer;
-import org.apache.kafka.common.serialization.ByteArrayDeserializer;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
@@ -19,7 +16,6 @@ import java.io.IOException;
 import java.time.Duration;
 import java.util.Collections;
 import java.util.Map;
-import java.util.Properties;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -30,9 +26,7 @@ public class ResourceLevelFalseConsumer {
 
     private static final Logger log = LoggerFactory.getLogger(ResourceLevelFalseConsumer.class);
     private final SseService sseService;
-    
-    @Value("${OHIO_KAFKA_BOOTSTRAP_SERVERS}")
-    private String bootstrapServers;
+    private final KafkaAdminFactory kafkaFactory;
 
     @Value("${CONSUMER_GROUP_ID}")
     private String consumerGroupId;
@@ -44,11 +38,11 @@ public class ResourceLevelFalseConsumer {
     private final Map<String, ExecutorService> userExecutors = new ConcurrentHashMap<>();
     public void startConsumerForUser(String username, String password) {
         if (userConsumers.containsKey(username)) {
-            // Consumer 이미 실행 중
+            log.info("🔄 사용자 {} Consumer 이미 실행 중 - 기존 Consumer 사용", username);
             return;
         }
         
-        // ResourceLevelFalseConsumer 시작
+        log.info("🚀 사용자 {} ResourceLevelFalse Consumer 새로 시작", username);
         
         try {
             Consumer<String, byte[]> consumer = createConsumer(username, password);
@@ -60,10 +54,16 @@ public class ResourceLevelFalseConsumer {
             executor.submit(() -> {
                 try {
                     consumer.subscribe(Collections.singletonList(topicName));
-                    // 토픽 구독 시작
+                    log.info("🎯 사용자 {} Consumer가 토픽 '{}' 구독 시작", username, topicName);
                     
                     while (!Thread.currentThread().isInterrupted()) {
                         ConsumerRecords<String, byte[]> records = consumer.poll(Duration.ofMillis(1000));
+                        
+                        if (!records.isEmpty()) {
+                            log.info("📨 [데이터 수신] 사용자: {}, 토픽: {}, 메시지 수: {} 개", 
+                                    username, topicName, records.count());
+                        }
+                        
                         for (ConsumerRecord<String, byte[]> record : records) {
                             byte[] rawBytes = record.value();
                             // 리소스 권한 부족 로그 수신
@@ -72,7 +72,7 @@ public class ResourceLevelFalseConsumer {
                             String message;
                             try {
                                 message = new String(rawBytes, "UTF-8");
-                                log.debug("변환된 메시지: {}", message);
+                                log.info("📄 수신된 메시지 내용: {}", message);
                             } catch (Exception e) {
                                 log.error("바이트 배열을 문자열로 변환 실패: {}", e.getMessage());
                                 message = "{\"error\": \"메시지 변환 실패\", \"rawBytes\": \"" + 
@@ -110,20 +110,7 @@ public class ResourceLevelFalseConsumer {
     }
 
     private Consumer<String, byte[]> createConsumer(String username, String password) {
-        Properties props = new Properties();
-        props.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers);
-        props.put(ConsumerConfig.GROUP_ID_CONFIG, consumerGroupId + "-" + username);
-        props.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class.getName());
-        props.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, ByteArrayDeserializer.class.getName());
-        props.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "latest");
-        props.put(ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG, true);
-        props.put("security.protocol", "SASL_PLAINTEXT");
-        props.put("sasl.mechanism", "SCRAM-SHA-512");
-        props.put("sasl.jaas.config",
-                "org.apache.kafka.common.security.scram.ScramLoginModule required " +
-                        "username=\"" + username + "\" password=\"" + password + "\";");
-        
-        return new KafkaConsumer<>(props);
+        return kafkaFactory.createConsumer(username, password, consumerGroupId);
     }
     
     private void sendMessageToClients(String rawMessage) {
@@ -132,34 +119,48 @@ public class ResourceLevelFalseConsumer {
         
         // 기존 방식 (하위 호환성)
         Map<String, ResponseBodyEmitter> emitters = sseService.getResourceLevelFalseEmitters();
+        log.info("🔍 기존 방식 SSE emitter 수: {}", emitters.size());
         emitters.forEach((clientId, emitter) -> {
             try {
                 emitter.send(jsonMessage, MediaType.TEXT_EVENT_STREAM);
+                log.info("✅ 기존 방식 SSE 전송 성공: Client ID {}, 전송 데이터: {}", clientId, jsonMessage);
             } catch (IOException e) {
-                log.error("SSE 전송 오류: {}", e.getMessage());
+                log.error("❌ SSE 전송 오류: {}", e.getMessage());
                 emitters.remove(clientId);
             }
         });
         
         // 사용자별 SSE 연결에도 전송
         Map<String, Map<String, ResponseBodyEmitter>> allUserEmitters = sseService.getAllUserResourceLevelFalseEmitters();
+        log.info("🔍 사용자별 SSE emitter 현황: 총 {} 명의 사용자", allUserEmitters.size());
+        
         allUserEmitters.forEach((username, userEmitters) -> {
+            log.info("🔍 사용자 {} - emitter 수: {}", username, userEmitters.size());
             // ConcurrentModificationException 방지를 위해 복사본 생성
             Map<String, ResponseBodyEmitter> emittersCopy = new ConcurrentHashMap<>(userEmitters);
             emittersCopy.forEach((clientId, emitter) -> {
                 try {
                     // SSE 메시지 전송 (JSON 형식으로 래핑된 메시지 전송)
                     emitter.send(jsonMessage, MediaType.TEXT_EVENT_STREAM);
+                    log.info("✅ 사용자별 SSE 전송 성공: 사용자 {}, Client ID {}, 전송 데이터: {}", username, clientId, jsonMessage);
                 } catch (IOException e) {
-                    log.warn("SSE 전송 실패 (연결 중단): 사용자 {}, 오류: {}", username, e.getMessage());
+                    log.warn("❌ SSE 전송 실패 (연결 중단): 사용자 {}, 오류: {}", username, e.getMessage());
                     // 연결이 중단된 경우 제거
                     userEmitters.remove(clientId);
                 } catch (Exception e) {
-                    log.error("SSE 전송 오류: 사용자 {}, 오류: {}", username, e.getMessage());
+                    log.error("❌ SSE 전송 오류: 사용자 {}, 오류: {}", username, e.getMessage());
                     userEmitters.remove(clientId);
                 }
             });
         });
+        
+        // SSE emitter가 없을 경우 경고
+        if (emitters.isEmpty() && allUserEmitters.isEmpty()) {
+            log.warn("⚠️ [데이터 전송 실패] 활성화된 SSE 연결이 없습니다! 메시지가 전송되지 않았습니다.");
+        } else {
+            int totalConnections = emitters.size() + allUserEmitters.values().stream().mapToInt(Map::size).sum();
+            log.info("📡 [데이터 전송 완료] 총 {} 개의 SSE 연결에 메시지 전송 완료", totalConnections);
+        }
     }
     
     /**
@@ -168,17 +169,7 @@ public class ResourceLevelFalseConsumer {
      * @return JSON 형식으로 래핑된 메시지
      */
     private String wrapMessageAsJson(String rawMessage) {
-        try {
-            com.fasterxml.jackson.databind.ObjectMapper objectMapper = new com.fasterxml.jackson.databind.ObjectMapper();
-            com.fasterxml.jackson.databind.node.ObjectNode jsonNode = objectMapper.createObjectNode();
-            jsonNode.put("rawMessage", rawMessage);
-            jsonNode.put("timestamp", System.currentTimeMillis());
-            return objectMapper.writeValueAsString(jsonNode);
-        } catch (Exception e) {
-            log.error("JSON 래핑 실패: {}", e.getMessage());
-            // JSON 래핑 실패 시 기본 형식으로 반환
-            return "{\"rawMessage\":\"" + rawMessage.replace("\"", "\\\"") + "\",\"timestamp\":" + System.currentTimeMillis() + "}";
-        }
+        return KafkaMessageUtil.parseMessageToJson(rawMessage, "resource-level-false");
     }
     
 }

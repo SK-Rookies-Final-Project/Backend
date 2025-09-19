@@ -22,19 +22,19 @@ public class Certified2Time {
     @Id @Column(columnDefinition = "text")
     private String id;                      //기본키
 
-    @Column(name="client_ip", columnDefinition="text")
+    @Column(name="clientIp", columnDefinition="text")
     private String clientIp;                //비인가 접근을 시도한 클라이언트 ip
 
-    @Column(name="alert_time_kst", columnDefinition="timestamptz", nullable = false)
+    @Column(name="alertTimeKST", columnDefinition="timestamptz", nullable = false)
     private OffsetDateTime alertTimeKST;    //이벤트 감지 시간
 
-    @Column(name="alert_type", columnDefinition = "text")
+    @Column(name="alertType", columnDefinition = "text")
     private String alertType;               //어떤 유형의 비인가 접근인지
 
     @Column(name="description", columnDefinition = "text")
     private String description;             //해당 비인가 접근에 대한 사람이 이해하기 쉬운 설명
 
-    @Column(name="failure_count", columnDefinition = "BIGINT")
+    @Column(name="failureCount", columnDefinition = "BIGINT")
     private Long failureCount;              //각 유형 별 비인가 접근 횟수
 
 

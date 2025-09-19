@@ -18,28 +18,28 @@ public class SystemLevelFalse {
     @Id @Column(columnDefinition="text")
     private String id;
 
-    @Column(name="event_time_kst", columnDefinition = "timestamptz", nullable = false)
+    @Column(name="eventTimeKST", columnDefinition = "timestamptz", nullable = false)
     private OffsetDateTime eventTimeKST;
 
-    @Column(name="processing_time_kst",columnDefinition = "timestamptz", nullable = false)
+    @Column(name="processingTimeKST",columnDefinition = "timestamptz", nullable = false)
     private OffsetDateTime processTimeKST;
 
     @Column(name="principal", columnDefinition="text")
     private String principal;
 
-    @Column(name="client_ip", columnDefinition="text")
+    @Column(name="clientIp", columnDefinition="text")
     private String clientIp;
 
-    @Column(name="method_name", columnDefinition="text")
+    @Column(name="methodName", columnDefinition="text")
     private String methodName;
 
     @Column(name="granted", columnDefinition="boolean")
     private boolean granted;
 
-    @Column(name="resource_type", columnDefinition="text")
+    @Column(name="resourceType", columnDefinition="text")
     private String resourceType;
 
-    @Column(name="resource_name", columnDefinition="text")
+    @Column(name="resourceName", columnDefinition="text")
     private String resourceName;
 
     @Column(name="operation", columnDefinition="text")

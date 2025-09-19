@@ -31,28 +31,28 @@ public class GetCertifiedNotMoveController {
         return ResponseEntity.ok(cnmService.getAllCount());
     }
 
-    @GetMapping(params = {"client_ip"})
+    @GetMapping(params = {"clientIp"})
     public ResponseEntity<List<CertifiedNotMove>> getOnlyClientIp(
-            @RequestParam(value = "client_ip") String clientIp
+            @RequestParam(value = "clientIp") String clientIp
     ) {
         List<CertifiedNotMove> c2tList = cnmService.getOnlyClientIp(clientIp);
         return ResponseEntity.ok(c2tList);
     }
 
-    @GetMapping(value = "/count", params = {"client_ip"})
-    public ResponseEntity<Long> getOnlyClientIpCount(@RequestParam(value = "client_ip") String clientIp){
+    @GetMapping(value = "/count", params = {"clientIp"})
+    public ResponseEntity<Long> getOnlyClientIpCount(@RequestParam(value = "clientIp") String clientIp){
         Long count = cnmService.getOnlyClientIpCount(clientIp);
         return ResponseEntity.ok(count);
     }
 
-    @GetMapping(params = {"alert_type"})
-    public ResponseEntity<List<CertifiedNotMove>> getOnlyAlertType(@RequestParam(value = "alert_type") String alertType){
+    @GetMapping(params = {"alertType"})
+    public ResponseEntity<List<CertifiedNotMove>> getOnlyAlertType(@RequestParam(value = "alertType") String alertType){
         List<CertifiedNotMove> c2tList = cnmService.getOnlyAlertType(alertType);
         return ResponseEntity.ok(c2tList);
     }
 
-    @GetMapping(value = "/count", params = {"alert_type"})
-    public ResponseEntity<Long> getOnlyAlertTypeCount(@RequestParam(value = "alert_type") String alertType){
+    @GetMapping(value = "/count", params = {"alertType"})
+    public ResponseEntity<Long> getOnlyAlertTypeCount(@RequestParam(value = "alertType") String alertType){
         Long cnt = cnmService.getOnlyAlertTypeCount(alertType);
         return ResponseEntity.ok(cnt);
     }
@@ -75,47 +75,47 @@ public class GetCertifiedNotMoveController {
         return ResponseEntity.ok(cnt);
     }
 
-    @GetMapping(params = {"start", "client_ip"})
+    @GetMapping(params = {"start", "clientIp"})
     public ResponseEntity<List<CertifiedNotMove>> getC(
             @RequestParam(value = "start") OffsetDateTime start,
             @RequestParam(value = "end", required = false) OffsetDateTime end,
-            @RequestParam(value = "client_ip") String clientIp
+            @RequestParam(value = "clientIp") String clientIp
     ){
         List<CertifiedNotMove> c2tList = cnmService.getC(start, end, clientIp);
         return ResponseEntity.ok(c2tList);
     }
 
-    @GetMapping(value = "/count", params = {"start", "client_ip"})
+    @GetMapping(value = "/count", params = {"start", "clientIp"})
     public ResponseEntity<Long> getCCount(
             @RequestParam(value = "start") OffsetDateTime start,
             @RequestParam(value = "end", required = false) OffsetDateTime end,
-            @RequestParam(value = "client_ip") String clientIp
+            @RequestParam(value = "clientIp") String clientIp
     ){
         Long cnt = cnmService.getCCount(start, end,clientIp);
         return ResponseEntity.ok(cnt);
     }
 
-    @GetMapping(params = {"start", "alert_type"})
+    @GetMapping(params = {"start", "alertType"})
     public ResponseEntity<List<CertifiedNotMove>> getA(
             @RequestParam(value = "start") OffsetDateTime start,
             @RequestParam(value = "end", required = false) OffsetDateTime end,
-            @RequestParam(value = "alert_type") String alertType
+            @RequestParam(value = "alertType") String alertType
     ){
         List<CertifiedNotMove> c2tList = cnmService.getA(start, end, alertType);
         return ResponseEntity.ok(c2tList);
     }
 
-    @GetMapping(value = "/count", params = {"start", "alert_type"})
+    @GetMapping(value = "/count", params = {"start", "alertType"})
     public ResponseEntity<Long> getACount(
             @RequestParam(value = "start") OffsetDateTime start,
             @RequestParam(value = "end", required = false) OffsetDateTime end,
-            @RequestParam(value = "alert_type") String alertType
+            @RequestParam(value = "alertType") String alertType
     ){
         Long cnt = cnmService.getACount(start, end, alertType);
         return ResponseEntity.ok(cnt);
     }
 
-    @GetMapping(value = "/count/group/client_ip", params = {"start"})
+    @GetMapping(value = "/count/group/clientIp", params = {"start"})
     public ResponseEntity<List<IpCount>> getIpCount(
             @RequestParam(value = "start") OffsetDateTime start,
             @RequestParam(value = "end", required = false) OffsetDateTime end
@@ -124,13 +124,13 @@ public class GetCertifiedNotMoveController {
         return ResponseEntity.ok(c2tIpCountList);
     }
 
-    @GetMapping(value = "/count/group/client_ip")
+    @GetMapping(value = "/count/group/clientIp")
     public ResponseEntity<List<IpCount>> getIpCountAll(){
         List<IpCount> c2tIpCountList = cnmService.getIpCountAll();
         return ResponseEntity.ok(c2tIpCountList);
     }
 
-    @GetMapping(value = "/count/group/alert_type", params = {"start"})
+    @GetMapping(value = "/count/group/alertType", params = {"start"})
     public ResponseEntity<List<AlertTypeCount>> getAlertTypeCount (
             @RequestParam(value = "start") OffsetDateTime start,
             @RequestParam(value = "end", required = false) OffsetDateTime end
@@ -139,7 +139,7 @@ public class GetCertifiedNotMoveController {
         return ResponseEntity.ok(c2tATCountList);
     }
 
-    @GetMapping(value="/count/group/alert_type")
+    @GetMapping(value="/count/group/alertType")
     public ResponseEntity<List<AlertTypeCount>> getAlterTypeCountAll(){
         List<AlertTypeCount> c2tAlterTypeCountList = cnmService.getAlertTypeCountAll();
         return ResponseEntity.ok(c2tAlterTypeCountList);

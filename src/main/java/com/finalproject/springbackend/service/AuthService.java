@@ -2,7 +2,6 @@ package com.finalproject.springbackend.service;
 
 import com.finalproject.springbackend.dto.LoginRequestDTO;
 import com.finalproject.springbackend.dto.LoginResponseDTO;
-import com.finalproject.springbackend.dto.UserInfo;
 import com.finalproject.springbackend.dto.Permission;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
@@ -44,7 +43,8 @@ public class AuthService {
         // 인증 요청 처리
 
         try {
-            List<String> allowedTopics = topicService.listTopics(username, password);
+            // 사용자 계정으로 Kafka SCRAM 인증 확인 (토픽 리스트 조회로 검증)
+            List<String> allowedTopics = topicService.listTopicsForUser(username, password);
             String token = generateToken(username);
             Permission userPermission = permissionService.getUserPermission(username);
             String permissionDescription = userPermission != null ? userPermission.getDescription() : "권한 없음";
@@ -178,7 +178,9 @@ public class AuthService {
     }
 
     public String getUserPassword(String username) {
-        return userPasswords.get(username);
+        String password = userPasswords.get(username);
+        log.debug("사용자 {} 비밀번호 조회: {}", username, password != null ? "존재" : "없음");
+        return password;
     }
 
     private String generateToken(String username) {

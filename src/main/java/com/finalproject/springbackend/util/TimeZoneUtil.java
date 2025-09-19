@@ -84,6 +84,49 @@ public class TimeZoneUtil {
     }
     
     /**
+     * 한국 시간을 프론트엔드용 문자열로 포맷팅
+     * "2025-02-03 오전 04:09:02" 형태로 변환
+     * 
+     * @param dateTime 변환할 시간 (KST 기준)
+     * @return 포맷된 한국어 시간 문자열
+     */
+    public static String formatToKoreanString(OffsetDateTime dateTime) {
+        if (dateTime == null) {
+            return null;
+        }
+        
+        // 한국 시간대로 변환
+        OffsetDateTime kstDateTime = dateTime.atZoneSameInstant(KST_ZONE).toOffsetDateTime();
+        
+        // 한국어 오전/오후 포맷터
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd a hh:mm:ss", java.util.Locale.KOREAN);
+        return kstDateTime.format(formatter);
+    }
+    
+    /**
+     * 프론트엔드에서 받은 ISO 문자열을 한국 시간으로 해석
+     * "2025-08-18T23:00:00.000Z" -> 한국 시간 기준으로 해석하여 OffsetDateTime 반환
+     * 
+     * @param isoString ISO 형태의 시간 문자열
+     * @return 한국 시간으로 해석된 OffsetDateTime
+     */
+    public static OffsetDateTime parseFromFrontend(String isoString) {
+        if (isoString == null || isoString.trim().isEmpty()) {
+            return null;
+        }
+        
+        try {
+            // ISO 문자열을 파싱하여 UTC 시간으로 받음
+            OffsetDateTime utcTime = OffsetDateTime.parse(isoString);
+            
+            // UTC 시간을 한국 시간으로 변환
+            return utcTime.atZoneSameInstant(KST_ZONE).toOffsetDateTime();
+        } catch (Exception e) {
+            throw new IllegalArgumentException("Invalid date format: " + isoString, e);
+        }
+    }
+    
+    /**
      * 디버깅을 위한 시간 정보 출력
      * 
      * @param label 라벨

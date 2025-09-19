@@ -65,7 +65,7 @@ public interface SystemLevelFalseRepository extends JpaRepository<SystemLevelFal
             @Param("principal") String principal
     );
 
-    //start + end + resource_name
+    //start + end + resourceName
     @Query("""
         SELECT s FROM SystemLevelFalse s
         WHERE (s.eventTimeKST >= :start) AND (s.eventTimeKST <= :end)
@@ -76,7 +76,7 @@ public interface SystemLevelFalseRepository extends JpaRepository<SystemLevelFal
             @Param(value = "start") OffsetDateTime start, @Param(value = "end") OffsetDateTime end,
             @Param("resourceName") String resourceName
     );
-    //start + end + resource_name 갯수
+    //start + end + resourceName 갯수
     @Query("""
         SELECT COUNT(s) FROM SystemLevelFalse s
         WHERE (s.eventTimeKST >= :start) AND (s.eventTimeKST <= :end)
@@ -109,7 +109,7 @@ public interface SystemLevelFalseRepository extends JpaRepository<SystemLevelFal
             @Param("operation") String operation
     );
 
-    //start + end + client_ip
+    //start + end + clientIp
     @Query("""
         SELECT s FROM SystemLevelFalse s
         WHERE (s.eventTimeKST >= :start) AND (s.eventTimeKST <= :end)
@@ -120,7 +120,7 @@ public interface SystemLevelFalseRepository extends JpaRepository<SystemLevelFal
             @Param(value = "start") OffsetDateTime start, @Param(value = "end") OffsetDateTime end,
             @Param("clientIp") String clientIp
     );
-    //start + end + client_ip 갯수
+    //start + end + clientIp 갯수
     @Query("""
         SELECT COUNT(s) FROM SystemLevelFalse s
         WHERE (s.eventTimeKST >= :start) AND (s.eventTimeKST <= :end)
@@ -132,7 +132,7 @@ public interface SystemLevelFalseRepository extends JpaRepository<SystemLevelFal
     );
 
     /**start + end + 2개의 컬럼*/
-    //start + end + principal, resource_name
+    //start + end + principal, resourceName
     @Query("""
         SELECT s FROM SystemLevelFalse s
         WHERE (s.eventTimeKST >= :start) AND (s.eventTimeKST <= :end)
@@ -213,7 +213,7 @@ public interface SystemLevelFalseRepository extends JpaRepository<SystemLevelFal
             @Param(value = "clientIp") String clientIp
     );
 
-    //start + end + resource_name, operation
+    //start + end + resourceName, operation
     @Query("""
         SELECT s FROM SystemLevelFalse s
         WHERE (s.eventTimeKST >= :start) AND (s.eventTimeKST <= :end)
@@ -240,7 +240,7 @@ public interface SystemLevelFalseRepository extends JpaRepository<SystemLevelFal
             @Param(value = "operation") String operation
     );
 
-    //start + end + resource_name, client_ip
+    //start + end + resourceName, clientIp
     @Query("""
         SELECT s FROM SystemLevelFalse s
         WHERE (s.eventTimeKST >= :start) AND (s.eventTimeKST <= :end)
@@ -267,7 +267,7 @@ public interface SystemLevelFalseRepository extends JpaRepository<SystemLevelFal
             @Param(value = "clientIp") String clientIp
     );
 
-    //start + end + operation, client_ip
+    //start + end + operation, clientIp
     @Query("""
         SELECT s FROM SystemLevelFalse s
         WHERE (s.eventTimeKST >= :start) AND (s.eventTimeKST <= :end)

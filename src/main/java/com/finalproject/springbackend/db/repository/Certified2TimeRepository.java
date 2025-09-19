@@ -41,7 +41,7 @@ public interface Certified2TimeRepository extends JpaRepository<Certified2Time, 
             @Param(value = "end") OffsetDateTime end
     );
 
-    //시간 + client_ip 기준으로 찾기
+    //시간 + clientIp 기준으로 찾기
     @Query("""
         SELECT c2 FROM Certified2Time c2
         WHERE c2.alertTimeKST >= :start AND c2.alertTimeKST <= :end
@@ -65,7 +65,7 @@ public interface Certified2TimeRepository extends JpaRepository<Certified2Time, 
             @Param(value = "clientIp") String clientIp
     );
 
-    //시간 + alert_type
+    //시간 + alertType
     @Query("""
         SELECT c2 FROM Certified2Time c2
         WHERE c2.alertTimeKST >= :start AND c2.alertTimeKST <= :end

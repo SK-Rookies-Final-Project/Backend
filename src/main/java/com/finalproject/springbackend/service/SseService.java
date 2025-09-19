@@ -1,5 +1,6 @@
 package com.finalproject.springbackend.service;
 
+import com.finalproject.springbackend.dto.UserInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -58,15 +59,17 @@ public class SseService {
     }
     
     // 사용자별 SSE 연결 생성 메서드들
-    public ResponseBodyEmitter createUserSystemLevelFalseStream(String username) {
+    public ResponseBodyEmitter createUserSystemLevelFalseStream(UserInfo userInfo) {
         // 사용자별 SSE 스트림 생성
-        // Consumer 시작 (실제 사용자 비밀번호 사용)
-        String password = authService.getUserPassword(username);
+        // Consumer 시작 (UserInfo에서 비밀번호 사용)
+        String username = userInfo.getUsername();
+        String password = userInfo.getPassword();
+        
         if (password != null) {
-            // 사용자 비밀번호 확인됨, Consumer 시작
             // 사용자 비밀번호 확인됨, Consumer 시작
             SystemLevelFalseConsumer consumer = applicationContext.getBean(SystemLevelFalseConsumer.class);
             consumer.startConsumerForUser(username, password);
+            log.debug("✅ 사용자 {} Consumer 시작 완료", username);
         } else {
             log.warn("❌ 사용자 {}의 비밀번호를 찾을 수 없습니다 - Consumer 시작하지 않음", username);
         }
@@ -89,41 +92,50 @@ public class SseService {
         return createUserSseConnectionWithClientId(userSystemLevelFalseEmitters, username, "system-level-false");
     }
     
-    public ResponseBodyEmitter createUserResourceLevelFalseStream(String username) {
+    public ResponseBodyEmitter createUserResourceLevelFalseStream(UserInfo userInfo) {
         // 사용자별 SSE 스트림 생성
-        // Consumer 시작 (실제 사용자 비밀번호 사용)
-        String password = authService.getUserPassword(username);
+        // Consumer 시작 (UserInfo에서 비밀번호 사용)
+        String username = userInfo.getUsername();
+        String password = userInfo.getPassword();
+        
         if (password != null) {
             ResourceLevelFalseConsumer consumer = applicationContext.getBean(ResourceLevelFalseConsumer.class);
             consumer.startConsumerForUser(username, password);
+            log.info("✅ 사용자 {} ResourceLevelFalse Consumer 시작 시도 완료", username);
         } else {
-            log.warn("사용자 {}의 비밀번호를 찾을 수 없습니다", username);
+            log.warn("❌ 사용자 {}의 비밀번호를 찾을 수 없습니다 - Consumer 시작하지 않음", username);
         }
         return createUserSseConnection(userResourceLevelFalseEmitters, username, "resource-level-false");
     }
     
-    public ResponseBodyEmitter createUserCertifiedNotMoveStream(String username) {
+    public ResponseBodyEmitter createUserCertifiedNotMoveStream(UserInfo userInfo) {
         // 사용자별 SSE 스트림 생성
-        // Consumer 시작 (실제 사용자 비밀번호 사용)
-        String password = authService.getUserPassword(username);
+        // Consumer 시작 (UserInfo에서 비밀번호 사용)
+        String username = userInfo.getUsername();
+        String password = userInfo.getPassword();
+        
         if (password != null) {
             CertifiedNotMoveConsumer consumer = applicationContext.getBean(CertifiedNotMoveConsumer.class);
             consumer.startConsumerForUser(username, password);
+            log.debug("✅ 사용자 {} CertifiedNotMove Consumer 시작 완료", username);
         } else {
-            log.warn("사용자 {}의 비밀번호를 찾을 수 없습니다", username);
+            log.warn("❌ 사용자 {}의 비밀번호를 찾을 수 없습니다 - Consumer 시작하지 않음", username);
         }
         return createUserSseConnection(userCertifiedNotMoveEmitters, username, "certified-notMove");
     }
     
-    public ResponseBodyEmitter createUserCertified2TimeStream(String username) {
+    public ResponseBodyEmitter createUserCertified2TimeStream(UserInfo userInfo) {
         // 사용자별 SSE 스트림 생성
-        // Consumer 시작 (실제 사용자 비밀번호 사용)
-        String password = authService.getUserPassword(username);
+        // Consumer 시작 (UserInfo에서 비밀번호 사용)
+        String username = userInfo.getUsername();
+        String password = userInfo.getPassword();
+        
         if (password != null) {
             Certified2TimeConsumer consumer = applicationContext.getBean(Certified2TimeConsumer.class);
             consumer.startConsumerForUser(username, password);
+            log.debug("✅ 사용자 {} Certified2Time Consumer 시작 완료", username);
         } else {
-            log.warn("사용자 {}의 비밀번호를 찾을 수 없습니다", username);
+            log.warn("❌ 사용자 {}의 비밀번호를 찾을 수 없습니다 - Consumer 시작하지 않음", username);
         }
         return createUserSseConnection(userCertified2TimeEmitters, username, "certified-2time");
     }
@@ -218,18 +230,36 @@ public class SseService {
         String clientId = java.util.UUID.randomUUID().toString();
         ResponseBodyEmitter emitter = new ResponseBodyEmitter(Long.MAX_VALUE);
         
-        // SSE 연결 생성 완료 (초기 메시지 전송 제거)
+        // SSE 연결 생성 완료 - 초기 연결 확인 메시지 전송 (Kafka 데이터 형식과 호환)
+        try {
+            // 실제 Kafka 데이터와 유사한 형식으로 초기 메시지 생성
+            String connectionMessage = "{\"id\":\"connection-" + clientId.substring(0, 8) + 
+                    "\",\"clientIp\":\"127.0.0.1\",\"eventTimeKST\":\"" + 
+                    java.time.OffsetDateTime.now().toString() + 
+                    "\",\"granted\":true,\"methodName\":\"SSE_CONNECTION\",\"operation\":\"CONNECT\"," +
+                    "\"principal\":\"" + username + "\",\"processingTimeKST\":\"" + 
+                    java.time.OffsetDateTime.now().toString() + 
+                    "\",\"resourceName\":\"/api/auth/" + topicName + "\",\"resourceType\":\"SSE_STREAM\"}";
+            
+            emitter.send(connectionMessage, org.springframework.http.MediaType.TEXT_EVENT_STREAM);
+            log.info("🔗 SSE 초기 연결 메시지 전송 완료: 사용자 {}, 토픽 {}, Client ID {}", username, topicName, clientId);
+        } catch (Exception e) {
+            log.warn("SSE 초기 메시지 전송 실패: {}", e.getMessage());
+        }
         
         userEmitters.put(clientId, emitter);
         
-        // 사용자별 SSE 연결 생성 완료
+        log.info("📊 [SSE 연결 현황] 사용자: {}, 토픽: {}, Client ID: {}, 총 연결 수: {}", 
+                username, topicName, clientId, userEmitters.size());
         
         emitter.onCompletion(() -> {
             userEmitters.remove(clientId);
+            log.info("🔌 [SSE 연결 해제] 사용자: {}, 토픽: {}, Client ID: {}, 남은 연결 수: {}", 
+                    username, topicName, clientId, userEmitters.size());
             if (userEmitters.isEmpty()) {
                 userEmitterMap.remove(username);
+                log.info("🏁 [SSE 완전 해제] 사용자: {}의 {} 토픽 모든 연결 해제", username, topicName);
             }
-            // 사용자별 SSE 연결 완료
         });
         
         emitter.onTimeout(() -> {

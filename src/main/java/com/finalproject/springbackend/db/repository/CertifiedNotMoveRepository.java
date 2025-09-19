@@ -40,7 +40,7 @@ public interface CertifiedNotMoveRepository extends JpaRepository<CertifiedNotMo
             @Param(value = "end") OffsetDateTime end
     );
 
-    //시간 + client_ip 기준으로 찾기
+    //시간 + clientIp 기준으로 찾기
     @Query("""
         SELECT cnm FROM CertifiedNotMove cnm
         WHERE cnm.alertTimeKST >= :start AND cnm.alertTimeKST <= :end
@@ -64,7 +64,7 @@ public interface CertifiedNotMoveRepository extends JpaRepository<CertifiedNotMo
             @Param(value = "clientIp") String clientIp
     );
 
-    //시간 + alert_type
+    //시간 + alertType
     @Query("""
         SELECT cnm FROM CertifiedNotMove cnm
         WHERE cnm.alertTimeKST >= :start AND cnm.alertTimeKST <= :end

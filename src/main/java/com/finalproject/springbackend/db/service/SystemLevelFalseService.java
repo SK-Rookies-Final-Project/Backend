@@ -74,7 +74,7 @@ public class SystemLevelFalseService {
         return principal;
     }
 
-    //resource_name 보정
+    //resourceName 보정
     private String correctionOfResourceName(String resourceName){
         if(resourceName == null || resourceName.isBlank()) { throw new IllegalArgumentException("resourceName을 넣어주세요"); }
         return resourceName.replaceAll("\\s+", "");
@@ -84,7 +84,7 @@ public class SystemLevelFalseService {
         if(operation == null || operation.isBlank()) { throw new IllegalArgumentException("operation을 넣어주세요"); }
         return operation.replaceAll("\\s+", "");
     }
-    //client_ip 보정
+    //clientIp 보정
     private String correctionOfClientIp(String clientIp){
         if(clientIp == null || clientIp.isBlank()){throw new IllegalArgumentException("clientIp값을 넣어주세요"); }
         return clientIp.replaceAll("\\s+", "");

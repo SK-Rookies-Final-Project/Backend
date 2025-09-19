@@ -1,6 +1,7 @@
 package com.finalproject.springbackend.filter;
 
 import com.finalproject.springbackend.dto.Permission;
+import com.finalproject.springbackend.dto.UserInfo;
 import com.finalproject.springbackend.service.AuthService;
 import com.finalproject.springbackend.service.PermissionService;
 import jakarta.servlet.FilterChain;
@@ -55,8 +56,15 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                     // 사용자의 권한 정보를 가져와서 Spring Security 권한으로 변환
                     Collection<GrantedAuthority> authorities = getUserAuthorities(username);
                     
+                    // UserInfo 객체 생성 (비밀번호는 AuthService에서 저장된 것 사용)
+                    String userPassword = authService.getUserPassword(username);
+                    UserInfo userInfo = UserInfo.builder()
+                            .username(username)
+                            .password(userPassword)
+                            .build();
+                    
                     UsernamePasswordAuthenticationToken authToken = 
-                        new UsernamePasswordAuthenticationToken(username, null, authorities);
+                        new UsernamePasswordAuthenticationToken(userInfo, null, authorities);
                     authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
                     SecurityContextHolder.getContext().setAuthentication(authToken);
                     
@@ -76,6 +84,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             authorities.add(new SimpleGrantedAuthority("ROLE_" + permission.name()));
         }
         
+        log.debug("사용자 {} 권한 변환: {} -> {}", username, userPermissions, authorities);
         return authorities;
     }
 }

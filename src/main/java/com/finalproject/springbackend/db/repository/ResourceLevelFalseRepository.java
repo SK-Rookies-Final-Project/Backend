@@ -77,7 +77,7 @@ public interface ResourceLevelFalseRepository extends JpaRepository<ResourceLeve
             @Param("operation") String operation
     );
 
-    //시간 + client_ip 기준으로 레코드 반환
+    //시간 + clientIp 기준으로 레코드 반환
     @Query("""
         SELECT r FROM ResourceLevelFalse r
         WHERE r.eventTimeKST >= :start AND r.eventTimeKST <= :end
@@ -136,7 +136,7 @@ public interface ResourceLevelFalseRepository extends JpaRepository<ResourceLeve
             @Param("clientIp") String clientIp
     );
 
-    //시간 + resource_name + operation
+    //시간 + resourceName + operation
     @Query("""
         SELECT r FROM ResourceLevelFalse r
         WHERE (r.eventTimeKST >= :start) AND (r.eventTimeKST <= :end)
@@ -151,7 +151,7 @@ public interface ResourceLevelFalseRepository extends JpaRepository<ResourceLeve
             @Param("operation") String operation
     );
 
-    //시간 + resource_name + client_ip
+    //시간 + resourceName + clientIp
     @Query("""
         SELECT r FROM ResourceLevelFalse r
         WHERE (r.eventTimeKST >= :start) AND (r.eventTimeKST <= :end)
@@ -166,7 +166,7 @@ public interface ResourceLevelFalseRepository extends JpaRepository<ResourceLeve
             @Param("clientIp") String clientIp
     );
 
-    //시간 + operation + client_ip
+    //시간 + operation + clientIp
     @Query("""
         SELECT r FROM ResourceLevelFalse r
         WHERE (r.eventTimeKST >= :start) AND (r.eventTimeKST <= :end)
@@ -216,7 +216,7 @@ public interface ResourceLevelFalseRepository extends JpaRepository<ResourceLeve
             @Param("clientIp") String clientIp
     );
 
-    //시간 + principal + operation += client_ip
+    //시간 + principal + operation += clientIp
     @Query("""
         SELECT r FROM ResourceLevelFalse r
         WHERE (r.eventTimeKST >= :start) AND (r.eventTimeKST <= :end)
@@ -253,7 +253,7 @@ public interface ResourceLevelFalseRepository extends JpaRepository<ResourceLeve
     );
 
     /** 시간 + 4가지 컬럼으로 레코드 찾기 */
-    //시간 + principal + resource_name, operation, client_ip
+    //시간 + principal + resourceName, operation, clientIp
     @Query("""
         SELECT r FROM ResourceLevelFalse r
         WHERE (r.eventTimeKST >= :start) AND (r.eventTimeKST <= :end)
@@ -274,6 +274,6 @@ public interface ResourceLevelFalseRepository extends JpaRepository<ResourceLeve
 }
 
 //principal
-//resource_name
+//resourceName
 //operation
-//client_ip
+//clientIp

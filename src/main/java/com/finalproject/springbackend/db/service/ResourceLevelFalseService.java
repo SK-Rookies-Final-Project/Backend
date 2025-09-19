@@ -242,7 +242,7 @@ public class ResourceLevelFalseService {
         return getTimeAndPrincipal(start, end, principal).size();
     }
 
-    //시간 + resource_name 컬럼으로 레코드 찾기
+    //시간 + resourceName 컬럼으로 레코드 찾기
     public List<ResourceLevelFalse> getTimeAndResourceName(
             OffsetDateTime start,
             OffsetDateTime end,
@@ -284,7 +284,7 @@ public class ResourceLevelFalseService {
         return getTimeAndOperation(start, end, operation).size();
     }
 
-    //시간 + client_ip
+    //시간 + clientIp
     public List<ResourceLevelFalse> getTimeAndClientIp(
             OffsetDateTime start, OffsetDateTime end, String clientIp
     ){
@@ -304,7 +304,7 @@ public class ResourceLevelFalseService {
     }
 
     /**시간 + 2가지 컬럼으로 찾기*/
-    //시간 + principal, resource_name
+    //시간 + principal, resourceName
     public List<ResourceLevelFalse> getTimeAndPR(
             OffsetDateTime start, OffsetDateTime end,
             String principal, String resourceName
@@ -368,7 +368,7 @@ public class ResourceLevelFalseService {
     }
     
     
-    //시간 + resource_name, operation
+    //시간 + resourceName, operation
     public List<ResourceLevelFalse> getTimeAndRO(
             OffsetDateTime start, OffsetDateTime end,
             String resourceName, String operation
@@ -389,7 +389,7 @@ public class ResourceLevelFalseService {
         return getTimeAndRO(start, end, resourceName, operation).size();
     }
     
-    //시간 + resource_name + client_ip 으로 조회
+    //시간 + resourceName + clientIp 으로 조회
     public List<ResourceLevelFalse> getTimeAndRC (
             OffsetDateTime start, OffsetDateTime end,
             String resourceName, String clientIp
@@ -410,7 +410,7 @@ public class ResourceLevelFalseService {
         return getTimeAndRC(start, end, resourceName, clientIp).size();
     }
 
-    //시간 + operation, client_ip
+    //시간 + operation, clientIp
     public List<ResourceLevelFalse> getTimeAndOC (
             OffsetDateTime start, OffsetDateTime end,
             String operation, String clientIp
@@ -432,7 +432,7 @@ public class ResourceLevelFalseService {
     }
 
     /**시간 + 3가지 컬럼으로 조회*/
-    //시간 + principal, resource_name, operation
+    //시간 + principal, resourceName, operation
     public List<ResourceLevelFalse> getTimeAndPRO(
             OffsetDateTime start, OffsetDateTime end,
             String principal, String resourceName, String operation
@@ -454,7 +454,7 @@ public class ResourceLevelFalseService {
         return getTimeAndPRO(start, end, principal, resourceName, operation).size();
     }
 
-    //시간 + principal + resource_name + client_ip
+    //시간 + principal + resourceName + clientIp
     public List<ResourceLevelFalse> getTimeAndPRC(
             OffsetDateTime start, OffsetDateTime end,
             String principal, String resourceName, String clientIp
@@ -476,7 +476,7 @@ public class ResourceLevelFalseService {
         return getTimeAndPRC(start, end, principal, resourceName, clientIp).size();
     }
 
-    //시간 + principal + operation + client_ip
+    //시간 + principal + operation + clientIp
     public List<ResourceLevelFalse> getTimeAndPOC(
             OffsetDateTime start, OffsetDateTime end,
             String principal, String operation, String clientIp
@@ -498,7 +498,7 @@ public class ResourceLevelFalseService {
         return getTimeAndPOC(start, end, principal, operation, clientIp).size();
     }
 
-    //시간 + resource_name + operation + client_ip
+    //시간 + resourceName + operation + clientIp
     public List<ResourceLevelFalse> getTimeAndROC(
             OffsetDateTime start, OffsetDateTime end,
             String resourceName, String operation, String clientIp
@@ -521,7 +521,7 @@ public class ResourceLevelFalseService {
     }
 
     /** 시간 + 4가지 컬럼으로 찾기 */
-    //시간 + principal + resource_name + operation, client_ip
+    //시간 + principal + resourceName + operation, clientIp
     public List<ResourceLevelFalse> getTimeAndPROC(
             OffsetDateTime start, OffsetDateTime end,
             String principal, String resourceName, String operation, String clientIp
@@ -546,7 +546,7 @@ public class ResourceLevelFalseService {
 
 
     //principal
-    //resource_name
+    //resourceName
     //operation
-    //client_ip
+    //clientIp
 }

@@ -1,15 +1,12 @@
 package com.finalproject.springbackend.service;
 
+import com.finalproject.springbackend.util.KafkaMessageUtil;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.apache.kafka.clients.consumer.Consumer;
-import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
-import org.apache.kafka.clients.consumer.KafkaConsumer;
-import org.apache.kafka.common.serialization.StringDeserializer;
-import org.apache.kafka.common.serialization.ByteArrayDeserializer;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
@@ -19,7 +16,6 @@ import java.io.IOException;
 import java.time.Duration;
 import java.util.Collections;
 import java.util.Map;
-import java.util.Properties;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -30,9 +26,7 @@ public class SystemLevelFalseConsumer {
 
     private static final Logger log = LoggerFactory.getLogger(SystemLevelFalseConsumer.class);
     private final SseService sseService;
-    
-    @Value("${OHIO_KAFKA_BOOTSTRAP_SERVERS}")
-    private String bootstrapServers;
+    private final KafkaAdminFactory kafkaFactory;
 
     @Value("${CONSUMER_GROUP_ID}")
     private String consumerGroupId;
@@ -72,7 +66,7 @@ public class SystemLevelFalseConsumer {
                             String message;
                             try {
                                 message = new String(rawBytes, "UTF-8");
-                                log.debug("변환된 메시지: {}", message);
+                                log.info("📄 수신된 메시지 내용: {}", message);
                             } catch (Exception e) {
                                 log.error("바이트 배열을 문자열로 변환 실패: {}", e.getMessage());
                                 message = "{\"error\": \"메시지 변환 실패\", \"rawBytes\": \"" + 
@@ -110,20 +104,7 @@ public class SystemLevelFalseConsumer {
     }
 
     private Consumer<String, byte[]> createConsumer(String username, String password) {
-        Properties props = new Properties();
-        props.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers);
-        props.put(ConsumerConfig.GROUP_ID_CONFIG, consumerGroupId + "-" + username);
-        props.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class.getName());
-        props.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, ByteArrayDeserializer.class.getName());
-        props.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "latest");
-        props.put(ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG, true);
-        props.put("security.protocol", "SASL_PLAINTEXT");
-        props.put("sasl.mechanism", "SCRAM-SHA-512");
-        props.put("sasl.jaas.config",
-                "org.apache.kafka.common.security.scram.ScramLoginModule required " +
-                        "username=\"" + username + "\" password=\"" + password + "\";");
-        
-        return new KafkaConsumer<>(props);
+        return kafkaFactory.createConsumer(username, password, consumerGroupId);
     }
     
     private void sendMessageToClients(String rawMessage) {
@@ -168,17 +149,7 @@ public class SystemLevelFalseConsumer {
      * @return JSON 형식으로 래핑된 메시지
      */
     private String wrapMessageAsJson(String rawMessage) {
-        try {
-            com.fasterxml.jackson.databind.ObjectMapper objectMapper = new com.fasterxml.jackson.databind.ObjectMapper();
-            com.fasterxml.jackson.databind.node.ObjectNode jsonNode = objectMapper.createObjectNode();
-            jsonNode.put("rawMessage", rawMessage);
-            jsonNode.put("timestamp", System.currentTimeMillis());
-            return objectMapper.writeValueAsString(jsonNode);
-        } catch (Exception e) {
-            log.error("JSON 래핑 실패: {}", e.getMessage());
-            // JSON 래핑 실패 시 기본 형식으로 반환
-            return "{\"rawMessage\":\"" + rawMessage.replace("\"", "\\\"") + "\",\"timestamp\":" + System.currentTimeMillis() + "}";
-        }
+        return KafkaMessageUtil.parseMessageToJson(rawMessage, "system-level-false");
     }
     
 }
