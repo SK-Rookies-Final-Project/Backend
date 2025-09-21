@@ -1,10 +1,7 @@
 package com.finalproject.springbackend.controller;
 
 import com.finalproject.springbackend.annotation.RequirePermission;
-import com.finalproject.springbackend.dto.CreateTopicRequestDTO;
-import com.finalproject.springbackend.dto.Permission;
-import com.finalproject.springbackend.dto.RegisterSchemaRequestDTO;
-import com.finalproject.springbackend.dto.UserInfo;
+import com.finalproject.springbackend.dto.*;
 import com.finalproject.springbackend.service.ConsumerGroupService;
 import com.finalproject.springbackend.service.SchemaService;
 import com.finalproject.springbackend.service.TopicService;
@@ -83,19 +80,26 @@ public class KafkaManagementController {
     // === 스키마 관리 ===
 
     /**
-     * Avro 스키마 등록 (ADMIN 또는 MANAGER 권한 필요)
+     * 새로운 Avro 스키마 등록 (ADMIN 또는 MANAGER 권한 필요)
      */
     @PostMapping("/schemas/avro")
     @RequirePermission({Permission.ADMIN, Permission.MANAGER})
-    public ResponseEntity<?> registerSchema(@RequestBody RegisterSchemaRequestDTO request) {
+    public ResponseEntity<?> registerAvroSchema(@RequestBody AvroSchemaRequest request) {
         try {
-            int id = schemaService.registerAvro(request.subject, request.schema);
-            return ResponseEntity.ok("✅ Registered schema with ID: " + id);
+            int schemaId = schemaService.registerAvro(request.getSubject(), request.getSchema());
+
+            return ResponseEntity.ok(Map.of(
+                    "subject", request.getSubject(),
+                    "id", schemaId,
+                    "schema", request.getSchema()
+            ));
         } catch (Exception e) {
-            log.error("❌ Failed to register schema for subject '{}': {}", request.subject, e.getMessage());
-            return ResponseEntity.internalServerError().body("❌ Failed to register schema: " + e.getMessage());
+            log.error("❌ Failed to register Avro schema for subject '{}': {}", request.getSubject(), e.getMessage());
+            return ResponseEntity.internalServerError()
+                    .body("❌ Failed to register Avro schema: " + e.getMessage());
         }
     }
+
 
     /**
      * 스키마 subject 목록 조회 (ADMIN 또는 MANAGER 권한 필요)
