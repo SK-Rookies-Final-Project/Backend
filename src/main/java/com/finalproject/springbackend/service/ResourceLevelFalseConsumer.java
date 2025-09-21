@@ -54,15 +54,9 @@ public class ResourceLevelFalseConsumer {
             executor.submit(() -> {
                 try {
                     consumer.subscribe(Collections.singletonList(topicName));
-                    log.info("🎯 사용자 {} Consumer가 토픽 '{}' 구독 시작", username, topicName);
                     
                     while (!Thread.currentThread().isInterrupted()) {
                         ConsumerRecords<String, byte[]> records = consumer.poll(Duration.ofMillis(1000));
-                        
-                        if (!records.isEmpty()) {
-                            log.info("📨 [데이터 수신] 사용자: {}, 토픽: {}, 메시지 수: {} 개", 
-                                    username, topicName, records.count());
-                        }
                         
                         for (ConsumerRecord<String, byte[]> record : records) {
                             byte[] rawBytes = record.value();
@@ -72,9 +66,7 @@ public class ResourceLevelFalseConsumer {
                             String message;
                             try {
                                 message = new String(rawBytes, "UTF-8");
-                                log.info("📄 수신된 메시지 내용: {}", message);
                             } catch (Exception e) {
-                                log.error("바이트 배열을 문자열로 변환 실패: {}", e.getMessage());
                                 message = "{\"error\": \"메시지 변환 실패\", \"rawBytes\": \"" + 
                                          java.util.Base64.getEncoder().encodeToString(rawBytes) + "\"}";
                             }
@@ -119,48 +111,35 @@ public class ResourceLevelFalseConsumer {
         
         // 기존 방식 (하위 호환성)
         Map<String, ResponseBodyEmitter> emitters = sseService.getResourceLevelFalseEmitters();
-        log.info("🔍 기존 방식 SSE emitter 수: {}", emitters.size());
+        
         emitters.forEach((clientId, emitter) -> {
             try {
                 emitter.send(jsonMessage, MediaType.TEXT_EVENT_STREAM);
-                log.info("✅ 기존 방식 SSE 전송 성공: Client ID {}, 전송 데이터: {}", clientId, jsonMessage);
+                log.info("📤 [resource_level_false] SSE 메시지 전송 완료: {}", jsonMessage);
             } catch (IOException e) {
-                log.error("❌ SSE 전송 오류: {}", e.getMessage());
                 emitters.remove(clientId);
             }
         });
         
         // 사용자별 SSE 연결에도 전송
         Map<String, Map<String, ResponseBodyEmitter>> allUserEmitters = sseService.getAllUserResourceLevelFalseEmitters();
-        log.info("🔍 사용자별 SSE emitter 현황: 총 {} 명의 사용자", allUserEmitters.size());
         
         allUserEmitters.forEach((username, userEmitters) -> {
-            log.info("🔍 사용자 {} - emitter 수: {}", username, userEmitters.size());
             // ConcurrentModificationException 방지를 위해 복사본 생성
             Map<String, ResponseBodyEmitter> emittersCopy = new ConcurrentHashMap<>(userEmitters);
             emittersCopy.forEach((clientId, emitter) -> {
                 try {
                     // SSE 메시지 전송 (JSON 형식으로 래핑된 메시지 전송)
                     emitter.send(jsonMessage, MediaType.TEXT_EVENT_STREAM);
-                    log.info("✅ 사용자별 SSE 전송 성공: 사용자 {}, Client ID {}, 전송 데이터: {}", username, clientId, jsonMessage);
+                    log.info("📤 [resource_level_false] SSE 메시지 전송 완료: {}", jsonMessage);
                 } catch (IOException e) {
-                    log.warn("❌ SSE 전송 실패 (연결 중단): 사용자 {}, 오류: {}", username, e.getMessage());
                     // 연결이 중단된 경우 제거
                     userEmitters.remove(clientId);
                 } catch (Exception e) {
-                    log.error("❌ SSE 전송 오류: 사용자 {}, 오류: {}", username, e.getMessage());
                     userEmitters.remove(clientId);
                 }
             });
         });
-        
-        // SSE emitter가 없을 경우 경고
-        if (emitters.isEmpty() && allUserEmitters.isEmpty()) {
-            log.warn("⚠️ [데이터 전송 실패] 활성화된 SSE 연결이 없습니다! 메시지가 전송되지 않았습니다.");
-        } else {
-            int totalConnections = emitters.size() + allUserEmitters.values().stream().mapToInt(Map::size).sum();
-            log.info("📡 [데이터 전송 완료] 총 {} 개의 SSE 연결에 메시지 전송 완료", totalConnections);
-        }
     }
     
     /**

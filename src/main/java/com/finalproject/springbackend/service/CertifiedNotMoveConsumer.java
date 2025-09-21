@@ -66,9 +66,7 @@ public class CertifiedNotMoveConsumer {
                             String message;
                             try {
                                 message = new String(rawBytes, "UTF-8");
-                                log.info("📄 수신된 메시지 내용: {}", message);
                             } catch (Exception e) {
-                                log.error("바이트 배열을 문자열로 변환 실패: {}", e.getMessage());
                                 message = "{\"error\": \"메시지 변환 실패\", \"rawBytes\": \"" + 
                                          java.util.Base64.getEncoder().encodeToString(rawBytes) + "\"}";
                             }
@@ -113,17 +111,19 @@ public class CertifiedNotMoveConsumer {
         
         // 기존 방식 (하위 호환성)
         Map<String, ResponseBodyEmitter> emitters = sseService.getCertifiedNotMoveEmitters();
+        
         emitters.forEach((clientId, emitter) -> {
             try {
                 emitter.send(jsonMessage, MediaType.TEXT_EVENT_STREAM);
+                log.info("📤 [auth_suspicious] SSE 메시지 전송 완료: {}", jsonMessage);
             } catch (IOException e) {
-                log.error("SSE 전송 오류: {}", e.getMessage());
                 emitters.remove(clientId);
             }
         });
         
         // 사용자별 SSE 연결에도 전송
         Map<String, Map<String, ResponseBodyEmitter>> allUserEmitters = sseService.getAllUserCertifiedNotMoveEmitters();
+        
         allUserEmitters.forEach((username, userEmitters) -> {
             // ConcurrentModificationException 방지를 위해 복사본 생성
             Map<String, ResponseBodyEmitter> emittersCopy = new ConcurrentHashMap<>(userEmitters);
@@ -131,12 +131,11 @@ public class CertifiedNotMoveConsumer {
                 try {
                     // SSE 메시지 전송 (JSON 형식으로 래핑된 메시지 전송)
                     emitter.send(jsonMessage, MediaType.TEXT_EVENT_STREAM);
+                    log.info("📤 [auth_suspicious] SSE 메시지 전송 완료: {}", jsonMessage);
                 } catch (IOException e) {
-                    log.warn("SSE 전송 실패 (연결 중단): 사용자 {}, 오류: {}", username, e.getMessage());
                     // 연결이 중단된 경우 제거
                     userEmitters.remove(clientId);
                 } catch (Exception e) {
-                    log.error("SSE 전송 오류: 사용자 {}, 오류: {}", username, e.getMessage());
                     userEmitters.remove(clientId);
                 }
             });

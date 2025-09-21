@@ -23,19 +23,19 @@ public class CertifiedNotMove {
     @Id @Column(columnDefinition="text")
     private String id;                      //기본키
 
-    @Column(name="clientIp", columnDefinition="text")
+    @Column(name="client_ip", columnDefinition="text")
     private String clientIp;                //비인가 접근을 시도한 클라이언트 ip
 
-    @Column(name="alertTimeKST",columnDefinition="timestamptz", nullable = false)
+    @Column(name="alert_time_kst",columnDefinition="timestamptz", nullable = false)
     private OffsetDateTime alertTimeKST;    //비인가 접근 시도한 시간
 
-    @Column(name="alertType", columnDefinition = "text")
+    @Column(name="alert_type", columnDefinition = "text")
     private String alertType;               //비인가 접근 유형
 
     @Column(name="description", columnDefinition = "text")
     private String description;             //비인가 접근에 대한 설명
 
-    @Column(name="failureCount", columnDefinition = "BIGINT")
+    @Column(name="failure_count", columnDefinition = "BIGINT")
     private Long failureCount;              //각 유형 별 비인가 접근 횟수
 
 }

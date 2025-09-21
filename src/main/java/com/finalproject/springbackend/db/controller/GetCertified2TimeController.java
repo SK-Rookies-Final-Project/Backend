@@ -29,33 +29,6 @@ public class GetCertified2TimeController {
     @GetMapping
     public ResponseEntity<List<Certified2Time>> getAll(){
         List<Certified2Time> c2tList = c2tService.getAll();
-        //더미데이터 살짝 넣어주기
-//        List<Certified2Time> c2tList = List.of(
-//                Certified2Time.builder()
-//                        .id("abc")
-//                        .clientIp("123.12.abc.abc")
-//                        .alertTimeKST(OffsetDateTime.parse("2025-09-16T05:58:56.048Z"))
-//                        .alertType("aaa")
-//                        .description("abc")
-//                        .failureCount(123L)
-//                        .build(),
-//                Certified2Time.builder()
-//                        .id("abcde")
-//                        .clientIp("123.12.111.123")
-//                        .alertTimeKST(OffsetDateTime.parse("2025-09-16T05:58:56.048Z"))
-//                        .alertType("aaa")
-//                        .description("abc")
-//                        .failureCount(123L)
-//                        .build(),
-//                Certified2Time.builder()
-//                        .id("abc")
-//                        .clientIp("123.12.222.231")
-//                        .alertTimeKST(OffsetDateTime.parse("2025-09-16T05:58:56.048Z"))
-//                        .alertType("aaa")
-//                        .description("abc")
-//                        .failureCount(123L)
-//                        .build()
-//        );
         return ResponseEntity.ok(c2tList);
     }
 
@@ -71,33 +44,6 @@ public class GetCertified2TimeController {
             @RequestParam(value = "clientIp") String clientIp
     ) {
         List<Certified2Time> c2tList = c2tService.getOnlyClientIp(clientIp);
-        //더미데이터 살짝 넣어주기
-//        List<Certified2Time> c2tList = List.of(
-//                Certified2Time.builder()
-//                        .id("abc")
-//                        .clientIp("123.12.abc.abc")
-//                        .alertTimeKST(OffsetDateTime.parse("2025-09-16T05:58:56.048Z"))
-//                        .alertType("aaa")
-//                        .description("abc")
-//                        .failureCount(123L)
-//                        .build(),
-//                Certified2Time.builder()
-//                        .id("abcde")
-//                        .clientIp("123.12.111.123")
-//                        .alertTimeKST(OffsetDateTime.parse("2025-09-16T05:58:56.048Z"))
-//                        .alertType("aaa")
-//                        .description("abc")
-//                        .failureCount(123L)
-//                        .build(),
-//                Certified2Time.builder()
-//                        .id("abc")
-//                        .clientIp("123.12.222.231")
-//                        .alertTimeKST(OffsetDateTime.parse("2025-09-16T05:58:56.048Z"))
-//                        .alertType("aaa")
-//                        .description("abc")
-//                        .failureCount(123L)
-//                        .build()
-//        );
 
         return ResponseEntity.ok(c2tList);
     }
@@ -111,34 +57,6 @@ public class GetCertified2TimeController {
     @GetMapping(params = {"alertType"})
     public ResponseEntity<List<Certified2Time>> getOnlyAlertType(@RequestParam(value = "alertType") String alertType){
         List<Certified2Time> c2tList = c2tService.getOnlyAlertType(alertType);
-        //더미데이터 살짝 넣어주기
-//        List<Certified2Time> c2tList = List.of(
-//                Certified2Time.builder()
-//                        .id("abc")
-//                        .clientIp("123.12.abc.abc")
-//                        .alertTimeKST(OffsetDateTime.parse("2025-09-16T05:58:56.048Z"))
-//                        .alertType("aaa")
-//                        .description("abc")
-//                        .failureCount(123L)
-//                        .build(),
-//                Certified2Time.builder()
-//                        .id("abcde")
-//                        .clientIp("123.12.111.123")
-//                        .alertTimeKST(OffsetDateTime.parse("2025-09-16T05:58:56.048Z"))
-//                        .alertType("aaa")
-//                        .description("abc")
-//                        .failureCount(123L)
-//                        .build(),
-//                Certified2Time.builder()
-//                        .id("abc")
-//                        .clientIp("123.12.222.231")
-//                        .alertTimeKST(OffsetDateTime.parse("2025-09-16T05:58:56.048Z"))
-//                        .alertType("aaa")
-//                        .description("abc")
-//                        .failureCount(123L)
-//                        .build()
-//        );
-
         return ResponseEntity.ok(c2tList);
     }
 
@@ -239,33 +157,6 @@ public class GetCertified2TimeController {
             @RequestParam(value = "alertType") String alertType
     ){
         List<Certified2Time> c2tList = c2tService.getA(start, end, alertType);
-        //더미데이터 살짝 넣어주기
-//        List<Certified2Time> c2tList = List.of(
-//                Certified2Time.builder()
-//                        .id("abc")
-//                        .clientIp("123.12.abc.abc")
-//                        .alertTimeKST(OffsetDateTime.parse("2025-09-16T05:58:56.048Z"))
-//                        .alertType("aaa")
-//                        .description("abc")
-//                        .failureCount(123L)
-//                        .build(),
-//                Certified2Time.builder()
-//                        .id("abcde")
-//                        .clientIp("123.12.111.123")
-//                        .alertTimeKST(OffsetDateTime.parse("2025-09-16T05:58:56.048Z"))
-//                        .alertType("aaa")
-//                        .description("abc")
-//                        .failureCount(123L)
-//                        .build(),
-//                Certified2Time.builder()
-//                        .id("abc")
-//                        .clientIp("123.12.222.231")
-//                        .alertTimeKST(OffsetDateTime.parse("2025-09-16T05:58:56.048Z"))
-//                        .alertType("aaa")
-//                        .description("abc")
-//                        .failureCount(123L)
-//                        .build()
-//        );
 
         return ResponseEntity.ok(c2tList);
     }
@@ -296,6 +187,30 @@ public class GetCertified2TimeController {
         return ResponseEntity.ok(c2tIpCountList);
     }
 
+    // 프론트엔드 호환성을 위한 snake_case 버전
+    @GetMapping(value = "/count/group/client_ip", params = {"start"})
+    public ResponseEntity<List<IpCount>> getIpCountSnakeCase(
+            @RequestParam(value = "start") String start,
+            @RequestParam(value = "end", required = false) String end
+    ){
+        try {
+            OffsetDateTime startTime = TimeZoneUtil.parseFromFrontend(start);
+            OffsetDateTime endTime = end != null ? TimeZoneUtil.parseFromFrontend(end) : null;
+            
+            List<IpCount> c2tIpCountList = c2tService.getIpCount(startTime, endTime);
+            return ResponseEntity.ok(c2tIpCountList);
+        } catch (IllegalArgumentException e) {
+            log.error("❌ Invalid date format: {}", e.getMessage());
+            return ResponseEntity.badRequest().build();
+        }
+    }
+
+    @GetMapping(value = "/count/group/client_ip")
+    public ResponseEntity<List<IpCount>> getIpCountAllSnakeCase(){
+        List<IpCount> c2tIpCountList = c2tService.getIpCountAll();
+        return ResponseEntity.ok(c2tIpCountList);
+    }
+
     @GetMapping(value = "/count/group/alertType", params = {"start"})
     public ResponseEntity<List<AlertTypeCount>> getAlertTypeCount (
             @RequestParam(value = "start") OffsetDateTime start,
@@ -307,6 +222,30 @@ public class GetCertified2TimeController {
 
     @GetMapping(value="/count/group/alertType")
     public ResponseEntity<List<AlertTypeCount>> getAlterTypeCountAll(){
+        List<AlertTypeCount> c2tAlterTypeCountList = c2tService.getAlertTypeCountAll();
+        return ResponseEntity.ok(c2tAlterTypeCountList);
+    }
+
+    // 프론트엔드 호환성을 위한 snake_case 버전
+    @GetMapping(value = "/count/group/alert_type", params = {"start"})
+    public ResponseEntity<List<AlertTypeCount>> getAlertTypeCountSnakeCase (
+            @RequestParam(value = "start") String start,
+            @RequestParam(value = "end", required = false) String end
+    ) {
+        try {
+            OffsetDateTime startTime = TimeZoneUtil.parseFromFrontend(start);
+            OffsetDateTime endTime = end != null ? TimeZoneUtil.parseFromFrontend(end) : null;
+            
+            List<AlertTypeCount> c2tATCountList = c2tService.getAlertTypeCount(startTime, endTime);
+            return ResponseEntity.ok(c2tATCountList);
+        } catch (IllegalArgumentException e) {
+            log.error("❌ Invalid date format: {}", e.getMessage());
+            return ResponseEntity.badRequest().build();
+        }
+    }
+
+    @GetMapping(value="/count/group/alert_type")
+    public ResponseEntity<List<AlertTypeCount>> getAlterTypeCountAllSnakeCase(){
         List<AlertTypeCount> c2tAlterTypeCountList = c2tService.getAlertTypeCountAll();
         return ResponseEntity.ok(c2tAlterTypeCountList);
     }

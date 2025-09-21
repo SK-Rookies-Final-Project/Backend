@@ -63,13 +63,13 @@ public class KafkaAdminFactory {
         Properties props = createBaseProperties(username, password);
         
         // Consumer 전용 설정
-        props.put(ConsumerConfig.GROUP_ID_CONFIG, consumerGroupId + "-" + username);
+        props.put(ConsumerConfig.GROUP_ID_CONFIG, consumerGroupId);
         props.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class.getName());
         props.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, ByteArrayDeserializer.class.getName());
         props.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "latest");
         props.put(ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG, true);
         
-        log.debug("Creating Kafka Consumer for user: {} with group: {}", username, consumerGroupId + "-" + username);
+        log.debug("Creating Kafka Consumer for user: {} with group: {}", username, consumerGroupId);
         
         try {
             Consumer<String, byte[]> consumer = new KafkaConsumer<>(props);

@@ -4,7 +4,9 @@ import com.finalproject.springbackend.db.entity.CertifiedNotMove;
 import com.finalproject.springbackend.db.repository.projection.AlertTypeCount;
 import com.finalproject.springbackend.db.repository.projection.IpCount;
 import com.finalproject.springbackend.db.service.CertifiedNotMoveService;
+import com.finalproject.springbackend.util.TimeZoneUtil;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -14,6 +16,7 @@ import org.springframework.web.bind.annotation.RestController;
 import java.time.OffsetDateTime;
 import java.util.List;
 
+@Slf4j
 @RestController
 @RequestMapping("/api/db/certified_not_move")
 @RequiredArgsConstructor
@@ -130,6 +133,30 @@ public class GetCertifiedNotMoveController {
         return ResponseEntity.ok(c2tIpCountList);
     }
 
+    // 프론트엔드 호환성을 위한 snake_case 버전
+    @GetMapping(value = "/count/group/client_ip", params = {"start"})
+    public ResponseEntity<List<IpCount>> getIpCountSnakeCase(
+            @RequestParam(value = "start") String start,
+            @RequestParam(value = "end", required = false) String end
+    ){
+        try {
+            OffsetDateTime startTime = TimeZoneUtil.parseFromFrontend(start);
+            OffsetDateTime endTime = end != null ? TimeZoneUtil.parseFromFrontend(end) : null;
+            
+            List<IpCount> c2tIpCountList = cnmService.getIpCount(startTime, endTime);
+            return ResponseEntity.ok(c2tIpCountList);
+        } catch (IllegalArgumentException e) {
+            log.error("❌ Invalid date format: {}", e.getMessage());
+            return ResponseEntity.badRequest().build();
+        }
+    }
+
+    @GetMapping(value = "/count/group/client_ip")
+    public ResponseEntity<List<IpCount>> getIpCountAllSnakeCase(){
+        List<IpCount> c2tIpCountList = cnmService.getIpCountAll();
+        return ResponseEntity.ok(c2tIpCountList);
+    }
+
     @GetMapping(value = "/count/group/alertType", params = {"start"})
     public ResponseEntity<List<AlertTypeCount>> getAlertTypeCount (
             @RequestParam(value = "start") OffsetDateTime start,
@@ -141,6 +168,30 @@ public class GetCertifiedNotMoveController {
 
     @GetMapping(value="/count/group/alertType")
     public ResponseEntity<List<AlertTypeCount>> getAlterTypeCountAll(){
+        List<AlertTypeCount> c2tAlterTypeCountList = cnmService.getAlertTypeCountAll();
+        return ResponseEntity.ok(c2tAlterTypeCountList);
+    }
+
+    // 프론트엔드 호환성을 위한 snake_case 버전
+    @GetMapping(value = "/count/group/alert_type", params = {"start"})
+    public ResponseEntity<List<AlertTypeCount>> getAlertTypeCountSnakeCase (
+            @RequestParam(value = "start") String start,
+            @RequestParam(value = "end", required = false) String end
+    ) {
+        try {
+            OffsetDateTime startTime = TimeZoneUtil.parseFromFrontend(start);
+            OffsetDateTime endTime = end != null ? TimeZoneUtil.parseFromFrontend(end) : null;
+            
+            List<AlertTypeCount> c2tATCountList = cnmService.getAlertTypeCount(startTime, endTime);
+            return ResponseEntity.ok(c2tATCountList);
+        } catch (IllegalArgumentException e) {
+            log.error("❌ Invalid date format: {}", e.getMessage());
+            return ResponseEntity.badRequest().build();
+        }
+    }
+
+    @GetMapping(value="/count/group/alert_type")
+    public ResponseEntity<List<AlertTypeCount>> getAlterTypeCountAllSnakeCase(){
         List<AlertTypeCount> c2tAlterTypeCountList = cnmService.getAlertTypeCountAll();
         return ResponseEntity.ok(c2tAlterTypeCountList);
     }
