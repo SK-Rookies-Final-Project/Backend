@@ -81,6 +81,21 @@ public class TopicService {
 
 
     /**
+     * 토픽 삭제 (사용자 계정 사용)
+     */
+    public void deleteTopic(String topicName, String username, String password) throws Exception {
+        try (AdminClient admin = factory.createAdminClient(username, password)) {
+            try {
+                admin.deleteTopics(Collections.singleton(topicName)).all().get();
+                log.info("🗑️ Deleted topic: {} by user: {}", topicName, username);
+            } catch (Exception e) {
+                log.error("❌ Failed to delete topic '{}' by user {}: {}", topicName, username, e.getMessage());
+                throw e;
+            }
+        }
+    }
+
+    /**
      * 토픽 상세 정보 조회 (사용자 계정 사용)
      */
     public Map<String, TopicDescription> describeTopics(List<String> topicNames, String username, String password) throws Exception {

@@ -68,7 +68,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                     authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
                     SecurityContextHolder.getContext().setAuthentication(authToken);
                     
-                    log.debug("JWT 인증 성공: {} (권한: {})", username, authorities);
+                    log.info("✅ JWT 인증 성공: {} (권한: {})", username, authorities);
                 }
             }
         }
@@ -84,7 +84,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             authorities.add(new SimpleGrantedAuthority("ROLE_" + permission.name()));
         }
         
-        log.debug("사용자 {} 권한 변환: {} -> {}", username, userPermissions, authorities);
+        log.info("사용자 {} 권한 변환: {} -> {}", username, userPermissions, authorities);
         return authorities;
     }
 }

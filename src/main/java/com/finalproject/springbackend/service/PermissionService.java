@@ -26,6 +26,7 @@ public class PermissionService {
         userPermissions.put("urd", Permission.MONITOR);
         
         // 사용자 권한 초기화 완료
+        log.info("사용자 권한 초기화 완료: {}", userPermissions);
     }
 
     public boolean hasPermission(String username, Permission permission) {

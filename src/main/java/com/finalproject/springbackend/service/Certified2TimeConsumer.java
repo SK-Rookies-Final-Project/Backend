@@ -28,8 +28,6 @@ public class Certified2TimeConsumer {
     private final SseService sseService;
     private final KafkaAdminFactory kafkaFactory;
 
-    @Value("${CONSUMER_GROUP_ID}")
-    private String consumerGroupId;
 
     @Value("${KAFKA_TOPIC_CERTIFIED_2TIME}")
     private String topicName;
@@ -42,10 +40,12 @@ public class Certified2TimeConsumer {
             return;
         }
         
-        // Certified2TimeConsumer 시작
+        // Certified2TimeConsumer 시작 - 고유한 UUID 기반 그룹 ID 사용
         
         try {
-            Consumer<String, byte[]> consumer = createConsumer(username, password);
+            // 고유한 Consumer Group ID 생성 (UUID 기반)
+            String uniqueGroupId = kafkaFactory.generateUniqueConsumerGroupId(username, topicName);
+            Consumer<String, byte[]> consumer = kafkaFactory.createConsumer(username, password, uniqueGroupId);
             userConsumers.put(username, consumer);
             
             ExecutorService executor = Executors.newSingleThreadExecutor();
@@ -101,9 +101,6 @@ public class Certified2TimeConsumer {
         }
     }
 
-    private Consumer<String, byte[]> createConsumer(String username, String password) {
-        return kafkaFactory.createConsumer(username, password, consumerGroupId);
-    }
     
     private void sendMessageToClients(String rawMessage) {
         // rawMessage를 JSON 형식으로 래핑하여 전송

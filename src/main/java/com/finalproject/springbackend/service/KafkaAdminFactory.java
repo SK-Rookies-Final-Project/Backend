@@ -68,6 +68,8 @@ public class KafkaAdminFactory {
         props.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, ByteArrayDeserializer.class.getName());
         props.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "latest");
         props.put(ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG, true);
+        props.put(ConsumerConfig.SESSION_TIMEOUT_MS_CONFIG, 30000);
+        props.put(ConsumerConfig.HEARTBEAT_INTERVAL_MS_CONFIG, 10000);
         
         log.debug("Creating Kafka Consumer for user: {} with group: {}", username, consumerGroupId);
         
@@ -80,6 +82,28 @@ public class KafkaAdminFactory {
             throw e;
         }
     }
+
+    /**
+     * UUID 기반 고유 Consumer Group ID 생성
+     * @param username 사용자명
+     * @param topicName 토픽명
+     * @return 고유한 Consumer Group ID
+     */
+    public String generateUniqueConsumerGroupId(String username, String topicName) {
+        String baseGroupId = "consumer-group";
+        String timestamp = String.valueOf(System.currentTimeMillis());
+        String uuid = java.util.UUID.randomUUID().toString().substring(0, 8);
+        
+        // 형식: consumer-group-username-topic-timestamp-uuid
+        String uniqueGroupId = String.format("%s-%s-%s-%s-%s", 
+            baseGroupId, username, topicName, timestamp, uuid);
+        
+        log.info("🆔 Generated unique consumer group ID: {} for user: {} topic: {}", 
+            uniqueGroupId, username, topicName);
+        
+        return uniqueGroupId;
+    }
+
     
     /**
      * Kafka 연결을 위한 기본 Properties 생성

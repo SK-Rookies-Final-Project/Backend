@@ -14,6 +14,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 
 import java.util.Collection;
+import java.util.List;
 import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
@@ -44,7 +45,9 @@ public class PermissionAspect {
         boolean hasPermission = checkSpringSecurityPermissions(authentication, requiredPermissions);
         
         if (!hasPermission) {
-            log.warn("사용자 {}가 필요한 권한 없이 API 접근 시도: {}", username, requiredPermissions);
+            log.warn("❌ 권한 부족 - 사용자: {}, 필요한 권한: {}, 현재 권한: {}", 
+                username, java.util.Arrays.toString(requiredPermissions), 
+                authentication.getAuthorities());
             
             // SSE 엔드포인트인지 확인
             if (isSseEndpoint(joinPoint)) {
@@ -87,31 +90,36 @@ public class PermissionAspect {
         Collection<? extends org.springframework.security.core.GrantedAuthority> authorities = 
             authentication.getAuthorities();
         
+        // 현재 사용자 권한 로그 출력
+        List<String> userAuthorities = authorities.stream().map(auth -> auth.getAuthority()).toList();
+        log.info("현재 사용자 권한: {}", userAuthorities);
+        log.info("필요한 권한: {}", java.util.Arrays.toString(requiredPermissions));
+        
         for (Permission requiredPermission : requiredPermissions) {
             String requiredRole = "ROLE_" + requiredPermission.name();
             
             // ADMIN 권한이 있으면 모든 권한 허용
             if (authorities.stream().anyMatch(auth -> auth.getAuthority().equals("ROLE_ADMIN"))) {
-                log.debug("ADMIN 권한으로 모든 접근 허용");
+                log.info("✅ ADMIN 권한으로 모든 접근 허용");
                 return true;
             }
             
             // MANAGER 권한이 있으면 MONITOR 권한도 허용
             if (requiredPermission == Permission.MONITOR && 
                 authorities.stream().anyMatch(auth -> auth.getAuthority().equals("ROLE_MANAGER"))) {
-                log.debug("MANAGER 권한으로 MONITOR 접근 허용");
+                log.info("✅ MANAGER 권한으로 MONITOR 접근 허용");
                 return true;
             }
             
             // 정확한 권한 매칭
             if (authorities.stream().anyMatch(auth -> auth.getAuthority().equals(requiredRole))) {
-                log.debug("권한 매칭 성공: {}", requiredRole);
+                log.info("✅ 권한 매칭 성공: {}", requiredRole);
                 return true;
             }
         }
         
-        log.debug("권한 매칭 실패. 사용자 권한: {}, 필요한 권한: {}", 
-            authorities.stream().map(auth -> auth.getAuthority()).toList(),
+        log.warn("❌ 권한 매칭 실패. 사용자 권한: {}, 필요한 권한: {}", 
+            userAuthorities,
             java.util.Arrays.toString(requiredPermissions));
         return false;
     }
