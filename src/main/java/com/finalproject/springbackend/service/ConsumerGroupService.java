@@ -8,6 +8,8 @@ import org.apache.kafka.common.TopicPartition;
 import org.apache.kafka.common.requests.ListOffsetsRequest;
 import org.springframework.stereotype.Service;
 
+import com.finalproject.springbackend.dto.*;
+
 import java.util.*;
 import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
@@ -141,6 +143,107 @@ public class ConsumerGroupService {
             throw e;
         }
     }
+
+    /**
+     * 특정 그룹의 상세 정보(멤버 리스트 + 파티션별 오프셋/lag)
+     */
+    public GroupDetail getGroupDetail(String groupId, String username, String password) throws Exception {
+        try (AdminClient admin = factory.createAdminClient(username, password)) {
+            // 1) 그룹 설명 (members 포함)
+            var descMap = admin.describeConsumerGroups(Collections.singletonList(groupId)).all().get();
+            var desc = descMap.get(groupId);
+
+            // 2) 그룹의 커밋 오프셋
+            Map<TopicPartition, OffsetAndMetadata> committed = Map.of();
+            try {
+                committed = admin.listConsumerGroupOffsets(groupId).partitionsToOffsetAndMetadata().get();
+            } catch (Exception e) {
+                log.warn("⚠️ Failed to get offsets for group '{}': {}", groupId, e.getMessage());
+            }
+
+            // 3) 최신 오프셋 조회 대상
+            Set<TopicPartition> allTps = committed.keySet();
+            Map<TopicPartition, ListOffsetsResult.ListOffsetsResultInfo> latest = new HashMap<>();
+
+            if (!allTps.isEmpty()) {
+                try {
+                    latest.putAll(admin.listOffsets(
+                            allTps.stream().collect(Collectors.toMap(tp -> tp,
+                                    tp -> OffsetSpec.latest()))
+                    ).all().get());
+                } catch (Exception e) {
+                    log.warn("⚠️ Failed to get latest offsets for group '{}': {}", groupId, e.getMessage());
+                }
+            }
+
+            if (!allTps.isEmpty()) {
+                try {
+                    latest = admin.listOffsets(
+                            allTps.stream().collect(Collectors.toMap(tp -> tp,
+                                    tp -> OffsetSpec.latest()))
+                    ).all().get();
+                } catch (Exception e) {
+                    log.warn("⚠️ Failed to get latest offsets for group '{}': {}", groupId, e.getMessage());
+                }
+            }
+
+            // 4) 멤버 -> assigned partition별 정보 구성
+            Map<TopicPartition, OffsetAndMetadata> finalCommitted = committed;
+            Map<TopicPartition, ListOffsetsResult.ListOffsetsResultInfo> finalLatest = latest;
+            List<MemberInfo> members = desc.members().stream().map(m -> {
+                List<AssignedPartition> assignedList = m.assignment().topicPartitions().stream().map(tp -> {
+                    long committedOffset = finalCommitted.getOrDefault(tp, new OffsetAndMetadata(-1L)).offset();
+
+                    long latestOffset = -1L;
+                    if (finalLatest.containsKey(tp)) {
+                        latestOffset = finalLatest.get(tp).offset();
+                    }
+
+                    long lag = -1L;
+                    if (committedOffset >= 0 && latestOffset >= 0) {
+                        lag = Math.max(latestOffset - committedOffset, 0);
+                    }
+
+                    return new AssignedPartition(
+                            tp.topic(),
+                            tp.partition(),
+                            committedOffset,
+                            latestOffset,
+                            lag
+                    );
+                }).sorted(
+                        Comparator.comparing(AssignedPartition::getTopic)
+                                .thenComparing(AssignedPartition::getPartition)
+                ).collect(Collectors.toList());
+
+                return new MemberInfo(m.consumerId(), m.clientId(), m.host(), assignedList);
+            }).collect(Collectors.toList());
+
+            // 5) 그룹 totalLag 계산 (committed 기준)
+            Map<TopicPartition, ListOffsetsResult.ListOffsetsResultInfo> finalLatest1 = latest;
+            long totalLag = committed.entrySet().stream().mapToLong(e -> {
+                var tp = e.getKey();
+                long committedOffset = e.getValue().offset();
+                long latestOffset = finalLatest1.getOrDefault(tp, new ListOffsetsResult.ListOffsetsResultInfo(ListOffsetsRequest.EARLIEST_TIMESTAMP, -1L, Optional.empty())).offset();
+                if (committedOffset >= 0 && latestOffset >= 0) return Math.max(latestOffset - committedOffset, 0);
+                return 0L;
+            }).sum();
+
+            // 6) DTO 반환
+            GroupDetail groupDetail = new GroupDetail(); // DTO 분리에 따라 생성자 대신 setter 사용
+            groupDetail.setGroupId(groupId);
+            groupDetail.setState(desc.state().toString());
+            groupDetail.setCoordinator(desc.coordinator() != null ? desc.coordinator().host() + ":" + desc.coordinator().port() : null);
+            groupDetail.setMembers(members);
+            groupDetail.setTotalLag(totalLag);
+
+            return groupDetail;
+        } catch (Exception e) {
+            log.error("❌ Failed to get group detail for {} by {}: {}", groupId, username, e.getMessage());
+            throw e;
+        }
+    }
+
 
     /** 요약 DTO */
     public record GroupSummary(

@@ -5,6 +5,7 @@ import com.finalproject.springbackend.dto.*;
 import com.finalproject.springbackend.service.ConsumerGroupService;
 import com.finalproject.springbackend.service.SchemaService;
 import com.finalproject.springbackend.service.TopicService;
+import com.finalproject.springbackend.dto.GroupDetail;
 import io.confluent.kafka.schemaregistry.client.SchemaMetadata;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -168,6 +169,19 @@ public class KafkaManagementController {
         } catch (Exception e) {
             log.error("❌ Failed to list consumer group summaries: {}", e.getMessage());
             return ResponseEntity.internalServerError().body("❌ Failed to list consumer group summaries: " + e.getMessage());
+        }
+    }
+
+    @GetMapping("/consumer-groups/{groupId}/detail")
+    @RequirePermission({Permission.ADMIN, Permission.MANAGER})
+    public ResponseEntity<?> getConsumerGroupDetail(@PathVariable String groupId, Authentication authentication) {
+        try {
+            UserInfo userInfo = (UserInfo) authentication.getPrincipal();
+            GroupDetail detail = consumerGroupService.getGroupDetail(groupId, userInfo.getUsername(), userInfo.getPassword());
+            return ResponseEntity.ok(detail);
+        } catch (Exception e) {
+            log.error("❌ Failed to get consumer group detail '{}': {}", groupId, e.getMessage());
+            return ResponseEntity.internalServerError().body("❌ Failed to get consumer group detail: " + e.getMessage());
         }
     }
 
